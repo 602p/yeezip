@@ -31,3 +31,6 @@
 # Debug files
 *.dSYM/
 *.su
+
+compress
+__pycache__

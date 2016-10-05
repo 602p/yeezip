@@ -1,0 +1,37 @@
+#ifndef __IO_H__
+#define __IO_H__
+
+#include <sys/stat.h>
+#include <stdio.h>
+#include "main.h"
+
+typedef struct MemoryMapping_struct{
+	void *ptr;
+	int size;
+	struct stat filestat;
+	int fd;
+}MemoryMapping;
+
+typedef struct BitFile_struct{
+	FILE *file;
+	bool read;
+
+	int position; //position reading/writing within buffer (bits)
+	byte buffer;
+}BitFile;
+
+MemoryMapping *MemoryMapping_open(char *path);
+void MemoryMapping_close(MemoryMapping* mapping);
+
+void Byte_setbit(byte *ref, int pos, bool value);
+bool Byte_getbit(byte b, int pos);
+
+BitFile *BitFile_open(char *path, bool read);
+void BitFile_close(BitFile *file);
+void BitFile_write(BitFile *file, bool bit);
+bool BitFile_readbit(BitFile *file);
+unsigned int BitFile_readint(BitFile *file, int size);
+
+int min_bits_to_represent(int n);
+
+#endif
