@@ -70,6 +70,7 @@ BitFile *BitFile_open(char *path, bool read){
 	if(read){
 		mode="r";
 		file->position=-1;
+		file->read_position=-1;
 	}
 	else{
 		mode="w";
@@ -83,6 +84,12 @@ BitFile *BitFile_open(char *path, bool read){
 		free(file);
 		file=0;
 		return file;
+	}
+
+	if(read){
+		struct stat st;
+		stat(path, &st);
+		file->size=st.st_size;
 	}
 
 	return file;
@@ -100,6 +107,32 @@ void BitFile_write(BitFile *file, bool bit){
 		file->buffer=0;
 		file->position=0;
 	}
+}
+
+bool BitFile_readbit(BitFile *file){
+	if(file->position==8 || file->position==-1){
+		file->position=0;
+		file->read_position++;
+		file->buffer=fgetc(file->file);
+	}
+
+	bool value=Byte_getbit(file->buffer, file->position);
+	file->position++;
+	return value;
+}
+
+int BitFile_readint(BitFile *file, int size){
+	int i=0;
+	int val=0;
+	while(i<size && BitFile_has_more(file)){
+		val ^= (-BitFile_readbit(file) ^ val) & (1 << i);
+		i++;
+	}
+	return val;
+}
+
+bool BitFile_has_more(BitFile *file){
+	return !(file->position==8 && file->read_position==file->size-1);
 }
 
 void BitFile_close(BitFile *file){

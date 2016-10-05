@@ -15,8 +15,10 @@ typedef struct MemoryMapping_struct{
 typedef struct BitFile_struct{
 	FILE *file;
 	bool read;
+	int size;
 
 	int position; //position reading/writing within buffer (bits)
+	int read_position;
 	byte buffer;
 }BitFile;
 
@@ -30,7 +32,8 @@ BitFile *BitFile_open(char *path, bool read);
 void BitFile_close(BitFile *file);
 void BitFile_write(BitFile *file, bool bit);
 bool BitFile_readbit(BitFile *file);
-unsigned int BitFile_readint(BitFile *file, int size);
+bool BitFile_has_more(BitFile *file);
+int BitFile_readint(BitFile *file, int size);
 
 int min_bits_to_represent(int n);
 

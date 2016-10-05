@@ -117,6 +117,39 @@ void free_table(LookupTable *table){
 	free(table);
 }
 
-void compress_file(MemoryMapping *in, BitFile *out);
+void compress_file(FILE *in, BitFile *out, LookupTable *table, int size){
+	int position=0;
+	byte currbyte;
+	int write_pos;
+	int bit_pos;
+	while(position<size){
+		currbyte=fgetc(in);
+		if((*table)[currbyte].len==0){
+			LOG_WARN("Char %c was found in file but not in LookupTable, ignoring\n", currbyte);
+		}else{
+			write_pos=0;
+			while(write_pos<(*table)[currbyte].len){
+				bit_pos=0;
+				while(bit_pos<(*table)[currbyte].widths[write_pos]){
+					BitFile_write(out, Byte_getbit((*table)[currbyte].values[write_pos], bit_pos));
+					bit_pos++;
+				}
+				write_pos++;
+			}
+		}
+		position++;
+	}
+}
+
+void decompress_file(BitFile *in, FILE *out, TreeNode *tree){
+	TreeNode *pos=tree;
+	while(BitFile_has_more(in)){
+		pos=TreeNode_traverse(pos, BitFile_readint(in, min_bits_to_represent(pos->children)));
+		if(TreeNode_leaf(pos)){
+			fprintf(out, "%c", pos->value);
+			pos=tree;
+		}
+	}
+}
 
 #undef LOG_REGION

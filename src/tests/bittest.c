@@ -39,4 +39,28 @@ void test_bitmanipulation(){
 	printf("BTR 123123123: %i\n", min_bits_to_represent(123123123));
 
 	BitFile_close(f);
+
+	printf("Testing reading...\n");
+
+	f=BitFile_open("out.txt", true);
+	i=0;
+
+	printf("Starting loop...\n");
+
+	while(BitFile_has_more(f)){
+		if(BitFile_readbit(f)){
+			printf("1");
+		}else{
+			printf("0");
+		}
+		i++;
+		if(i==8){
+			printf("\n");
+			i=0;
+		}
+	}
+
+	printf("Closing\n");
+
+	BitFile_close(f);
 }

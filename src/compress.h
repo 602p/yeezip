@@ -15,7 +15,8 @@ typedef struct LookupTableElement_struct LookupTable[256];
 
 LookupTable *create_table(TreeNode *root);
 void free_table(LookupTable *table);
-void compress_file(MemoryMapping *in, BitFile *out);
+void compress_file(FILE *in, BitFile *out, LookupTable *table, int size);
+void decompress_file(BitFile *in, FILE *out, TreeNode *tree);
 
 void LookupTable_print(LookupTable *table);
 
