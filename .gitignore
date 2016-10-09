@@ -34,3 +34,8 @@
 
 compress
 __pycache__
+samples/*
+~samples/makesamples.py
+*.yz
+*.yt
+out.txt
