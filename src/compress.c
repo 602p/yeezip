@@ -2,6 +2,10 @@
 #include "log.h"
 #include "map.h"
 #include "args.h"
+#include <stdlib.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include "codingtree.h"
 
 #define LOG_REGION "compress"
 
@@ -60,7 +64,7 @@ void LookupTable_print(LookupTable *table){
 
 void fill_table(LookupTable *table, TreeNode *node, int depth, int *path, int *widths){
 	if(TreeNode_leaf(node)){
-		LOG_SPAM("Traversing to leaf, v=%c\n", node->value);
+		// LOG_SPAM("Traversing to leaf, v=%c\n", node->value);
 		(*table)[(int)node->value].len=depth;
 		(*table)[(int)node->value].values=malloc(sizeof(int)*depth);
 		(*table)[(int)node->value].widths=malloc(sizeof(int)*depth);
@@ -141,15 +145,204 @@ void compress_file(FILE *in, BitFile *out, LookupTable *table, int size){
 	}
 }
 
-void decompress_file(BitFile *in, FILE *out, TreeNode *tree){
+void decompress_file(BitFile *in, FILE *out, TreeNode *tree, int size){
 	TreeNode *pos=tree;
-	while(BitFile_has_more(in)){
+	int bytes_read=0;
+	while(bytes_read!=size){
 		pos=TreeNode_traverse(pos, BitFile_readint(in, min_bits_to_represent(pos->children)));
 		if(TreeNode_leaf(pos)){
 			fprintf(out, "%c", pos->value);
 			pos=tree;
+			bytes_read+=1;
 		}
 	}
+}
+
+#define MAGIC_STRING "YEE"
+#define MAGIC_STRING_SIZE 3
+#define FILE_VERSION 0
+
+//Header structure (v0)
+//BYTES		TYPE	THING
+//3 		char 	Literal string 'YEE'
+//1 		byte 	Version (Currently: 0)
+//1 		byte	Flags (see compress.h:HF_*)
+//4			int 	Length of contents in bytes
+//* 		?	 	If HF_NOTREE, nothing
+//					If HF_FLAT, nothing
+//					If HF_PTREE, a PTree_HeaderInfo as described:
+//						BYTES 	TYPE 	THING
+//	 					4 		int 	Size of following ptree data (incl name)
+//						?		string 	The algorithm name followed by a null byte
+//	 					? 		void 	Arbitrary data as specified by the algorithm
+//					If no flags (default behavior: Tree stored here), a tree serialized as follows
+//						BYTES 	TYPE 	THING
+//						4		int 	Total number of nodes
+//						? 		tree 	Tree saved as follows:
+//						For each node starting with the root node, the following is written:
+//							BYTES 	TYPE 	THING
+//							1 		char 	The character represented
+// 							4 		int 	The number of children. 0=Leaf
+// 						Then following this is written all of the children serialized as above(left-hand traversal)
+
+HeaderInfo *HeaderInfo_create_notree(unsigned int fsize){
+	HeaderInfo *hi=malloc(sizeof(HeaderInfo));
+	hi->size=fsize;
+	hi->flags=HF_NOTREE;
+	hi->version=FILE_VERSION;
+	return hi;
+}
+
+HeaderInfo *HeaderInfo_create_tree(unsigned int fsize, TreeNode *tree){
+	HeaderInfo *hi=HeaderInfo_create_notree(fsize);
+	hi->flags=HF_NONE;
+	hi->tree=tree;
+	return hi;
+}
+
+HeaderInfo *HeaderInfo_create_ptree(unsigned int fsize, char *algname, int data_size, void *data){
+	HeaderInfo *hi=HeaderInfo_create_notree(fsize);
+	hi->flags=HF_PTREE | HF_NOTREE;
+	hi->ptree_name=algname;
+	hi->ptree_data_size=data_size;
+	hi->ptree_data=data;
+	return hi;
+}
+
+void HeaderInfo_destroy(HeaderInfo *header){
+	free(header);
+}
+
+int HeaderInfo_get_base_size(){
+	return 
+		sizeof(byte)+			//Version
+		sizeof(byte)+			//Flags
+		sizeof(unsigned int)+	//Size
+		MAGIC_STRING_SIZE;	 	//Magic String
+}
+
+byte *HeaderInfo_save(HeaderInfo *header, int *size_out){
+	int hdr_size=HeaderInfo_get_base_size();
+
+	LOG_SPAM("HeaderInfo_save: hdr_size=%i\n", hdr_size);
+
+	void *tree_buf;
+	int   tree_buf_size;
+	int   tree_node_count;
+
+	if(!(header->flags & HF_NOTREE)){
+		//We need to save the tree too...
+		tree_buf_size=Tree_savetobuf_size(header->tree);
+		tree_buf=Tree_savetobuf(header->tree);
+		tree_node_count=TreeNode_count(header->tree);
+
+		hdr_size+=tree_buf_size;
+		hdr_size+=sizeof(int);
+	}
+
+	if(header->flags & HF_PTREE){
+		//We need to include ptree data
+		hdr_size+=
+			strlen(header->ptree_name)+		//Algorithm Name
+			1+								//Null-terminator for algorithm name
+			sizeof(unsigned int)+			//Data size
+			header->ptree_data_size; 		//PTree data
+	}
+
+	byte *buffer=malloc(hdr_size);
+	*size_out=hdr_size;
+	int write_pos=0;
+	LOG_SPAM("HeaderInfo_save: allocated %ib\n", hdr_size);
+
+	memcpy(buffer, &MAGIC_STRING, MAGIC_STRING_SIZE);
+	write_pos+=MAGIC_STRING_SIZE;
+	LOG_SPAM("HeaderInfo_save: wrote MAGIC_STRING (%s), write_pos=%i\n", MAGIC_STRING, write_pos);
+
+	memcpy(buffer+write_pos, &header->version, sizeof(byte));
+	write_pos+=sizeof(byte);
+	LOG_SPAM("HeaderInfo_save: wrote version, write_pos=%i\n", write_pos);
+
+	memcpy(buffer+write_pos, &header->flags, sizeof(byte));
+	write_pos+=sizeof(byte);
+	LOG_SPAM("HeaderInfo_save: wrote flags, write_pos=%i\n", write_pos);
+
+	int size_nbo=htonl(header->size);
+	memcpy(buffer+write_pos, &size_nbo, sizeof(unsigned int));
+	write_pos+=sizeof(unsigned int);
+	LOG_SPAM("HeaderInfo_save: wrote size, write_pos=%i\n", write_pos);
+
+	if(!(header->flags & HF_NOTREE)){
+		int tree_node_count_nbo=htonl(tree_node_count);
+		memcpy(buffer+write_pos, &tree_node_count_nbo, sizeof(int));
+		write_pos+=sizeof(int);
+
+		memcpy(buffer+write_pos, tree_buf, tree_buf_size);
+	}else if(header->flags & HF_PTREE){
+		int ptree_data_size_nbo=htonl(header->ptree_data_size);
+		memcpy(buffer+write_pos, &ptree_data_size_nbo, sizeof(int));
+		write_pos+=sizeof(int);
+
+		memcpy(buffer+write_pos, header->ptree_name, strlen(header->ptree_name)+1);
+		write_pos+=strlen(header->ptree_name)+1;
+
+		memcpy(buffer+write_pos, header->ptree_data, header->ptree_data_size);
+	}
+
+	return buffer;
+}
+
+HeaderInfo *HeaderInfo_load_base(byte *buffer){
+	HeaderInfo *hdr=malloc(sizeof(HeaderInfo));
+
+	int read_pos=0;
+
+	while(read_pos<MAGIC_STRING_SIZE){
+		if(buffer[read_pos]!=MAGIC_STRING[read_pos]){
+			LOG_ERROR("Invalid MAGIC_STRING, corrupt/incorrect file\n");
+			goto fail;
+		}
+		read_pos++;
+	}
+
+	LOG_SPAM("HeaderInfo_load_base: Magic String validated, read_pos=%i\n", read_pos);
+
+	memcpy(&hdr->version, buffer+read_pos, sizeof(byte));
+	read_pos+=sizeof(byte);
+
+	LOG_SPAM("HeaderInfo_load_base: Version read, read_pos=%i\n", read_pos);
+
+	if(hdr->version!=FILE_VERSION){
+		LOG_ERROR("Invalid file version, Mine=%i, File's=%i\n", (int)FILE_VERSION, (int)hdr->version);
+		goto fail;
+	}
+
+	memcpy(&hdr->flags, buffer+read_pos, sizeof(byte));
+	read_pos+=sizeof(byte);
+
+	int size_nbo;
+	memcpy(&size_nbo, buffer+read_pos, sizeof(int));
+	read_pos+=sizeof(int);
+	hdr->size=ntohl(size_nbo);
+
+	return hdr;
+
+	fail:
+	free(hdr);
+	return 0;
+}
+
+int HeaderInfo_load_ptree_size(HeaderInfo *hdr, byte *buffer);
+void HeaderInfo_load_ptree(HeaderInfo *hdr, byte *buffer);
+
+int HeaderInfo_load_tree_size(HeaderInfo *hdr, byte *buffer){
+	int nodecount_nbo;
+	memcpy(&nodecount_nbo, buffer, sizeof(int));
+	int nodes = htonl(nodecount_nbo);
+	hdr->_tree_node_count=nodes;
+	return nodes*(sizeof(byte)+sizeof(int));
+}
+void HeaderInfo_load_tree(HeaderInfo *hdr, byte *buffer){
+	hdr->tree = Tree_loadfrombuf(buffer);
 }
 
 #undef LOG_REGION

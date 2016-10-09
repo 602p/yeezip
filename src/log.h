@@ -43,7 +43,7 @@ void setup_logging();
 
 #define LOG_DEBUG(...) LOG(DEBUG, "", __VA_ARGS__)
 #define LOG_STATUS(...) LOG(STATUS, "", __VA_ARGS__)
-#define LOG_INFO(...) LOG(INFO, "", __VA_ARGS__)
+#define LOG_INFO(...) LOG(INFO, "-", __VA_ARGS__)
 #define LOG_WARN(...) LOG(WARN, "*", __VA_ARGS__)
 #define LOG_ERROR(...) LOG(ERROR, "**", __VA_ARGS__)
 #define LOG_FAIL(...) LOG(FAIL, "!!", __VA_ARGS__)

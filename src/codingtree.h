@@ -25,5 +25,9 @@ bool TreeNode_leaf(TreeNode* node);
 void TreeNode_destroy(TreeNode* node);
 void TreeNode_attach(TreeNode* parent, TreeNode* child, int pos);
 void TreeNode_print_tree(TreeNode* tree);
+int TreeNode_count(TreeNode* node);
+
+char *Tree_savetobuf(TreeNode* root);
+TreeNode *Tree_loadfrombuf(byte* buf);
 
 #endif

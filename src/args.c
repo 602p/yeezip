@@ -155,7 +155,7 @@ Intent *parse_args(int argc, char *argv[]){
 
 				case 'P':
 					Map_setstr(app_config->config, argv[current_arg]+2, "1");
-					LOG_SPAM("Set parameter `%s` -> `1` (-P directive)\n", name_temp);
+					LOG_SPAM("Set parameter `%s` -> `1` (-P directive)\n", argv[current_arg]+2);
 					break;
 
 				default:
@@ -246,7 +246,7 @@ void display_help(){
 		"Test: -t<name>\n"
 		"  -t<name>        : Run the test name <name>\n"
 		"\n"
-		"By Louis Goessling. Good luck!\n"
+		"(>) Copyleft Louis Goessling 2016. Good luck!\n"
 	);
 }
 

@@ -15,7 +15,8 @@ files = [
 	"src/tests/extensiontest.c",
 	"src/tests/mmap.c",
 	"src/tests/bittest.c",
-	"src/tests/dispatcher.c"
+	"src/tests/dispatcher.c",
+	"src/tests.c"
 ]
 
 extention_dir="src/extentions"
@@ -25,7 +26,8 @@ output = "compress"
 defines={
 	"lln":["LOG_LINENO"],
 	"espam":["ENABLE_SPAM"],
-	"debug":["LOG_LINENO", "ENABLE_SPAM"]
+	"debug":["LOG_LINENO", "ENABLE_SPAM"],
+	"tests":["ENABLE_TESTS"]
 }
 
 ###########################################################################################
@@ -45,16 +47,22 @@ for arg in sys.argv:
 	if arg.startswith("-o"):
 		extentions=[arg[2:]]
 
+basecmd="gcc -ldl -lm -fPIC -I./src"+defines_as_string+" "+files_as_string
+
+if "tests" in sys.argv:
+	basecmd+=" -lcriterion "
+
+
 if "rbx" in sys.argv:
 	for extention in extentions:
 		fullname=extention_dir+"/"+extention
 		barename=extention[:-2]
 		soname="extentions/"+barename+".so"
-		cmdline="gcc -ldl -lm -fPIC -shared -I./src "+fullname+" "+files_as_string+" -o "+soname+" "+defines_as_string
+		cmdline=basecmd+" "+fullname+" -shared -o "+soname
 		print("Building extention %s: %s"%(barename, cmdline))
 		os.system(cmdline)
 
-cmdline="gcc {files_as_string} -ldl -lm -I./src -o {output} {defines_as_string}".format(**locals())
+cmdline=basecmd+" -o "+output
 
 if "dbm" not in sys.argv:
 	print("Executing:"+cmdline)

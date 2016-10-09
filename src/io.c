@@ -142,7 +142,6 @@ void BitFile_close(BitFile *file){
 			int req_fill=8-file->position;
 			LOG_SPAM("Padding end of BitFile on BitFile_close (position=%i, req_fill=%i)\n", file->position, req_fill);
 			while(i<req_fill){
-				LOG_SPAM("Writing 0\n");
 				BitFile_write(file, false);
 				i++;
 			}

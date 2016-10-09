@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <arpa/inet.h>
+#include "log.h"
+
+#define LOG_REGION "tree"
 
 bool TreeNode_leaf(TreeNode* node){
 	if(node->children==0){
@@ -43,35 +47,82 @@ void TreeNode_attach(TreeNode* parent, TreeNode* child, int pos){
 	(*parent->links)[pos]=child;
 }
 
-// void _TreeNode_print_node(TreeNode* node, char *prefix, bool drawLine){
-// 	char *new=malloc(strlen(prefix)+4);
-// 	strcpy(new, prefix);
-// 	if(drawLine){
-// 		memcpy(new+strlen(prefix), "|   ", 4);
-// 	}else{
-// 		memcpy(new+strlen(prefix), "    ", 4);
-// 	}
-// 	if(TreeNode_leaf(node)){
-// 		printf(prefix);
-// 		printf("|---%c\n", node->value);
-// 		if(drawLine){
-// 			printf(prefix);
-// 			printf("|\n");
-// 		}
-// 	}else{
-// 		printf(prefix);
-// 		printf("+---*\n");
-// 		_TreeNode_print_node(node->left, new, true);
-// 		_TreeNode_print_node(node->right, new, false);
-// 		if(drawLine){
-// 			printf(prefix);
-// 			printf("|\n");
-// 		}
-// 	}
-// 	free(new);
-// }
+int TreeNode_count(TreeNode* node){
+	if(TreeNode_leaf(node)){
+		return 1;
+	}
 
-// void TreeNode_print_tree(TreeNode* tree){
-// 	char blank[]="";
-// 	_TreeNode_print_node(tree, blank, false);
-// }
+	int sum = 0;
+	int i = 0;
+	while(i<node->children){
+		sum+=TreeNode_count((*node->links)[i]);
+		i++;
+	}
+
+	return sum+1;
+}
+
+void TreeNode_write(TreeNode *node, char *buffer, int *buf_pos){
+	// LOG_SPAM("Writing node where value=%c children=%i buf_pos=%i memaddr=%i\n", node->value, node->children, *buf_pos, buffer+(*buf_pos));
+	memcpy(buffer+(*buf_pos), &(node->value), sizeof(byte));
+	(*buf_pos)+=sizeof(byte);
+
+	int children_nbo=htonl(node->children);
+	memcpy(buffer+(*buf_pos), &children_nbo, sizeof(int));
+	(*buf_pos)+=sizeof(int);
+
+	int i=0;
+	while(i<node->children){
+		TreeNode_write((*node->links)[i], buffer, buf_pos);
+		i++;
+	}
+}
+
+int Tree_savetobuf_size(TreeNode *root){
+	int nodes=TreeNode_count(root);
+	int size=((sizeof(int)+sizeof(byte))*nodes);
+	return size;
+}
+
+char *Tree_savetobuf(TreeNode* root){
+	int size=Tree_savetobuf_size(root);
+	LOG_SPAM("Allocating %i bytes for Tree_savetobuf\n", size);
+	char *buffer=malloc(size);
+
+	int buf_pos=0;
+	TreeNode_write(root, buffer, &buf_pos);
+
+	return buffer;
+}
+
+TreeNode *TreeNode_load(byte *buffer, int *buf_pos){
+	byte value;
+	memcpy(&value, buffer+(*buf_pos), sizeof(byte));
+	TreeNode *node=TreeNode_create_leaf(value);
+	*buf_pos+=sizeof(byte);
+
+	int children_nbo;
+	memcpy(&children_nbo, buffer+(*buf_pos), sizeof(int));
+	node->children=ntohl(children_nbo);
+	*buf_pos+=sizeof(int);
+
+	// LOG_SPAM("Loaded node value=%c children=%i\n", node->value, node->children);
+
+	if(node->children>0){
+		node->links=malloc(sizeof(TreeNode*)*node->children);
+		int child_idx=0;
+		while(child_idx<node->children){
+			(*node->links)[child_idx]=TreeNode_load(buffer, buf_pos);
+			child_idx+=1;
+		}
+	}
+
+	return node;
+}
+
+TreeNode *Tree_loadfrombuf(byte* buf){
+	int buf_pos=0;
+	return TreeNode_load(buf, &buf_pos);
+}
+
+#undef LOG_REGION
