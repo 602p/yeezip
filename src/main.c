@@ -127,59 +127,13 @@ int main(int argc, char *argv[]) {
 
 		BitFile *file_in=BitFile_open(intent->infile, true);
 
-		int hdr_base_size=HeaderInfo_get_base_size();
-		byte *base_hdr_buffer=malloc(hdr_base_size);
-		fread(base_hdr_buffer, hdr_base_size, 1, file_in->file);
-		HeaderInfo *hdr=HeaderInfo_load_base(base_hdr_buffer);
-		free(base_hdr_buffer);
+		HeaderInfo *hdr=HeaderInfo_load_fd(file_in->file);
 
-		LOG_SPAM("Base header loaded. Version=%i, Flags=%i, Len=%i\n", (int)hdr->version, (int)hdr->flags, (int)hdr->size);
-
-		if(!(hdr->flags & HF_NOTREE)){
-			LOG_SPAM("Header includes tree, loading tree header\n");
-
-			char *hdr_tree_hdr_buffer=malloc(sizeof(int));
-			fread(hdr_tree_hdr_buffer, sizeof(int), 1, file_in->file);
-			int size=HeaderInfo_load_tree_size(hdr, hdr_tree_hdr_buffer);
-			free(hdr_tree_hdr_buffer);
-
-			LOG_SPAM("HeaderInfo_load_tree_size returned %i\n", size);
-
-			char *hdr_tree_tree_buffer=malloc(size);
-			fread(hdr_tree_tree_buffer, size, 1, file_in->file);
-			HeaderInfo_load_tree(hdr, hdr_tree_tree_buffer);
-			free(hdr_tree_tree_buffer);
-
-			LOG_SPAM("Tree header loaded. Nodes=%i\n", TreeNode_count(hdr->tree));
-
-			tree=hdr->tree;
-		}else{
+		if(hdr->flags & HF_NOTREE){
 			if(strlen(intent->importfile)!=0){
 				LOG_STATUS("Loading tree from `%s`\n", intent->importfile);
-				FILE *imp_file=fopen(intent->importfile, "r");
-
-				int imp_hdr_base_size=HeaderInfo_get_base_size();
-				byte *imp_base_hdr_buffer=malloc(imp_hdr_base_size);
-				fread(imp_base_hdr_buffer, imp_hdr_base_size, 1, imp_file);
-				HeaderInfo *imp_hdr=HeaderInfo_load_base(imp_base_hdr_buffer);
-				free(imp_base_hdr_buffer);
-
-				if(imp_hdr->flags & HF_NOTREE){
-					LOG_FAIL("Specified importfile did not contain a tree (HF_NOTREE set)\n");
-					exit(1);
-				}
-
-				char *imp_hdr_tree_hdr_buffer=malloc(sizeof(int));
-				fread(imp_hdr_tree_hdr_buffer, sizeof(int), 1, imp_file);
-				int imp_size=HeaderInfo_load_tree_size(imp_hdr, imp_hdr_tree_hdr_buffer);
-				free(imp_hdr_tree_hdr_buffer);
-
-				LOG_SPAM("HeaderInfo_load_tree_size (on imp_hdr) returned %i\n", imp_size);
-
-				char *imp_hdr_tree_tree_buffer=malloc(imp_size);
-				fread(imp_hdr_tree_tree_buffer, imp_size, 1, imp_file);
-				HeaderInfo_load_tree(imp_hdr, imp_hdr_tree_tree_buffer);
-				free(imp_hdr_tree_tree_buffer);
+				
+				HeaderInfo *imp_hdr=HeaderInfo_load_file(intent->importfile);
 
 				LOG_SPAM("Tree (imported) header loaded. Nodes=%i\n", TreeNode_count(imp_hdr->tree));
 
@@ -188,6 +142,8 @@ int main(int argc, char *argv[]) {
 				LOG_FAIL("No treedata in input file (HF_NOTREE set) and no treefile provided\n");
 				exit(1);
 			}
+		}else{
+			tree=hdr->tree;
 		}
 
 		FILE *file_out = fopen(intent->outfile, "w");

@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include "codingtree.h"
 
-#define LOG_REGION "compress"
+#define LOG_REGION "cmprs"
 
 void LookupTable_print(LookupTable *table){
 
@@ -343,6 +343,43 @@ int HeaderInfo_load_tree_size(HeaderInfo *hdr, byte *buffer){
 }
 void HeaderInfo_load_tree(HeaderInfo *hdr, byte *buffer){
 	hdr->tree = Tree_loadfrombuf(buffer);
+}
+
+HeaderInfo *HeaderInfo_load_fd(FILE *fd){
+	int hdr_base_size=HeaderInfo_get_base_size();
+	byte *base_hdr_buffer=malloc(hdr_base_size);
+	fread(base_hdr_buffer, hdr_base_size, 1, fd);
+	HeaderInfo *hdr=HeaderInfo_load_base(base_hdr_buffer);
+	free(base_hdr_buffer);
+
+	LOG_SPAM("Base header loaded. Version=%i, Flags=%i, Len=%i\n", (int)hdr->version, (int)hdr->flags, (int)hdr->size);
+
+	if(!(hdr->flags & HF_NOTREE)){
+		LOG_SPAM("Header includes tree, loading tree header\n");
+
+		char *hdr_tree_hdr_buffer=malloc(sizeof(int));
+		fread(hdr_tree_hdr_buffer, sizeof(int), 1, fd);
+		int size=HeaderInfo_load_tree_size(hdr, hdr_tree_hdr_buffer);
+		free(hdr_tree_hdr_buffer);
+
+		LOG_SPAM("HeaderInfo_load_tree_size returned %i\n", size);
+
+		char *hdr_tree_tree_buffer=malloc(size);
+		fread(hdr_tree_tree_buffer, size, 1, fd);
+		HeaderInfo_load_tree(hdr, hdr_tree_tree_buffer);
+		free(hdr_tree_tree_buffer);
+
+		LOG_SPAM("Tree header loaded. Nodes=%i\n", TreeNode_count(hdr->tree));
+	}
+
+	return hdr;
+}
+
+HeaderInfo *HeaderInfo_load_file(char *path){
+	FILE *fd=fopen(path, "r");
+	HeaderInfo *hdr=HeaderInfo_load_fd(fd);
+	fclose(fd);
+	return hdr;
 }
 
 #undef LOG_REGION

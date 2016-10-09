@@ -50,4 +50,7 @@ void HeaderInfo_load_ptree(HeaderInfo *hdr, byte *buffer);
 int HeaderInfo_load_tree_size(HeaderInfo *hdr, byte *buffer);
 void HeaderInfo_load_tree(HeaderInfo *hdr, byte *buffer);
 
+HeaderInfo *HeaderInfo_load_fd(FILE *fd);
+HeaderInfo *HeaderInfo_load_file(char *path);
+
 #endif
