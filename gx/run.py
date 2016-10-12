@@ -86,15 +86,33 @@ def evolve(pop, min, max, retain=0.2, random_select=0.05, mutate=0.01):
     parents.extend(children)
     return parents
 
+base=sum(freq)
+print("Base= %d"%base)
+
 MIN=1
 MAX=50
 LENGTH=10
 
+last=[]
+
 p=population(100, LENGTH, MIN, MAX)
 
 for i in range(3000):
-    p=evolve(p, MIN, MAX)
-    if(i%100==0):print("%d\t: %s \t\t[%s]"%(i, str(p[0]), fitness(p[0])//8))
+    p=evolve(p, MIN, MAX, mutate=0.05)
+    bytes=fitness(p[0])//8
+    pct=(bytes/base)*100
+    if(i%100==0):
+        print("%d\t: %s \t\t%sb -> %f%% -> [%s]"%(i, str(p[0]), bytes, pct, ("#"*int(pct*.4))+(" "*(40-int(pct*.4)))))
+        last.append(bytes)
+        if len(last)>10:
+            b=last[-10:][0]
+            end=True
+            for l in last[-10:]:
+                if l!=b:
+                    end=False
+            if end:
+                print("Last 1000 iterations made no improvement, quitting")
+                break
 
 temp=ordering[:]
 tree=[]

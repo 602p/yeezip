@@ -13,7 +13,7 @@ void test_extensions(){
 
 	LOG_DEBUG("===Calling test===\n");
 
-	Map_GETFUNC(treebuilder_extensions, "test", treebuilder_sig)(app_config, "test string");
+	Map_GETFUNC(treebuilder_extensions, "test", treebuilder_sig)(app_config, 0);
 }
 
 #undef LOG_REGION

@@ -152,8 +152,8 @@ void BitFile_close(BitFile *file){
 }
 
 int min_bits_to_represent(int n){
-	if(n<1){
-		LOG_ERROR("Call to min_bits_to_represent with n<1 (n=%i)\n", n);
+	if(n<0){
+		LOG_ERROR("Call to min_bits_to_represent with n<0 (n=%i)\n", n);
 		return -1;
 	}
 	float bitwidth=1;

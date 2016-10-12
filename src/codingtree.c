@@ -63,13 +63,13 @@ int TreeNode_count(TreeNode* node){
 }
 
 void TreeNode_write(TreeNode *node, char *buffer, int *buf_pos){
-	// LOG_SPAM("Writing node where value=%c children=%i buf_pos=%i memaddr=%i\n", node->value, node->children, *buf_pos, buffer+(*buf_pos));
+	LOG_SPAM("Writing node where value=%c children=%i buf_pos=%i memaddr=%i\n", node->value, node->children, *buf_pos, buffer+(*buf_pos));
 	memcpy(buffer+(*buf_pos), &(node->value), sizeof(byte));
 	(*buf_pos)+=sizeof(byte);
 
-	int children_nbo=htonl(node->children);
-	memcpy(buffer+(*buf_pos), &children_nbo, sizeof(int));
-	(*buf_pos)+=sizeof(int);
+	byte children_as_byte=node->children;
+	memcpy(buffer+(*buf_pos), &children_as_byte, sizeof(byte));
+	(*buf_pos)+=sizeof(byte);
 
 	int i=0;
 	while(i<node->children){
@@ -80,7 +80,7 @@ void TreeNode_write(TreeNode *node, char *buffer, int *buf_pos){
 
 int Tree_savetobuf_size(TreeNode *root){
 	int nodes=TreeNode_count(root);
-	int size=((sizeof(int)+sizeof(byte))*nodes);
+	int size=((sizeof(byte)+sizeof(byte))*nodes);
 	return size;
 }
 
@@ -101,12 +101,12 @@ TreeNode *TreeNode_load(byte *buffer, int *buf_pos){
 	TreeNode *node=TreeNode_create_leaf(value);
 	*buf_pos+=sizeof(byte);
 
-	int children_nbo;
-	memcpy(&children_nbo, buffer+(*buf_pos), sizeof(int));
-	node->children=ntohl(children_nbo);
-	*buf_pos+=sizeof(int);
+	byte children_as_byte;
+	memcpy(&children_as_byte, buffer+(*buf_pos), sizeof(byte));
+	node->children=children_as_byte;
+	*buf_pos+=sizeof(byte);
 
-	// LOG_SPAM("Loaded node value=%c children=%i\n", node->value, node->children);
+	LOG_SPAM("Loaded node value=%c children=%i, buf_pos=%i\n", node->value, node->children, *buf_pos);
 
 	if(node->children>0){
 		node->links=malloc(sizeof(TreeNode*)*node->children);
@@ -123,6 +123,34 @@ TreeNode *TreeNode_load(byte *buffer, int *buf_pos){
 TreeNode *Tree_loadfrombuf(byte* buf){
 	int buf_pos=0;
 	return TreeNode_load(buf, &buf_pos);
+}
+
+void Tree_print(TreeNode *root){
+	TreeNode *pos=root;
+	bool run = true;
+	int depth=0;
+	int dp;
+	int cp;
+	while(run){
+		cp=0;
+		while(cp<pos->children){
+			dp=0;
+			while(dp<depth){printf("\t");dp++;}
+			printf(" o ");
+			printf("Value = `%c`, Children=%i", (*pos->links)[cp]->value, (*pos->links)[cp]->children);
+			if((*pos->links)[cp]->children!=0){
+				printf("   <CONTAINER>\n");
+				pos=(*pos->links)[cp];
+				depth++;
+				break;
+			}
+			if(cp==pos->children-1){
+				run=false;
+			}
+			printf("\n");
+			cp++;
+		}
+	}
 }
 
 #undef LOG_REGION

@@ -30,7 +30,7 @@ defines={
 	"tests":["ENABLE_TESTS"]
 }
 
-python_extensions=["testpython"]
+python_extensions=["testpython","python_interface"]
 
 ###########################################################################################
 
@@ -56,7 +56,8 @@ if "tests" in sys.argv:
 
 
 if "rbx" in sys.argv:
-	for extention in extentions:
+	os.system("rm extentions/*")
+	for extention in [x for x in extentions if x.endswith(".c")]:
 		fullname=extention_dir+"/"+extention
 		barename=extention[:-2]
 		soname="extentions/"+barename+".so"
@@ -66,6 +67,7 @@ if "rbx" in sys.argv:
 		print("Building extention %s: %s"%(barename, cmdline))
 
 		os.system(cmdline)
+	os.system("cp src/extentions/*.py extentions")
 
 cmdline=basecmd+" -o "+output
 

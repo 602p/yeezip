@@ -10,7 +10,7 @@ char *ext_get_name(){
 	return "foobar";
 }
 
-TreeNode *ext_build_tree(AppConfig *parent_config, char *text){
+TreeNode *ext_build_tree(AppConfig *parent_config, int *freqtable){
 	app_config=parent_config;
 	LOG_INFO("***Test 2 called***\n");
 	LOG_INFO("options[test]=%s\n",Map_getstr(app_config->config, "test"));

@@ -148,6 +148,8 @@ int main(int argc, char *argv[]) {
 
 		FILE *file_out = fopen(intent->outfile, "w");
 
+		if(Arg_has("print_tree")) Tree_print(tree);
+
 		decompress_file(file_in, file_out, tree, hdr->size);
 
 		BitFile_close(file_in);

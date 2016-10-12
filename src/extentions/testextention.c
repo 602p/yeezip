@@ -10,7 +10,7 @@ char *ext_get_name(){
 	return "test";
 }
 
-TreeNode *ext_build_tree(AppConfig *parent_config, char *text){
+TreeNode *ext_build_tree(AppConfig *parent_config, int *freqtable){
 	app_config=parent_config;
 	LOG_INFO("Extention called\n");
 	LOG_ALLOC("Boutta malloc...\n");

@@ -3,10 +3,8 @@
 #include <stdlib.h>
 
 typedef unsigned char byte;
-typedef int bool;
 
-#define true 1
-#define false 0
+#include <stdbool.h>
 
 #define LEFT false
 #define RIGHT true

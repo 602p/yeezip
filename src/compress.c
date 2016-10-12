@@ -148,14 +148,21 @@ void compress_file(FILE *in, BitFile *out, LookupTable *table, int size){
 void decompress_file(BitFile *in, FILE *out, TreeNode *tree, int size){
 	TreeNode *pos=tree;
 	int bytes_read=0;
+	int val;
+	int width;
 	while(bytes_read!=size){
-		pos=TreeNode_traverse(pos, BitFile_readint(in, min_bits_to_represent(pos->children)));
+		width=min_bits_to_represent(pos->children);
+		val=BitFile_readint(in, width);
+		pos=TreeNode_traverse(pos, val);
+		printf("%i:%i->(%i)%i\t", in->buffer, in->position, width, val);
+		// printf("val=%i, pos->value=%c, pos->children=%i\n", val, pos->value, pos->children);
 		if(TreeNode_leaf(pos)){
 			fprintf(out, "%c", pos->value);
 			pos=tree;
 			bytes_read+=1;
 		}
 	}
+	printf("\n");
 }
 
 #define MAGIC_STRING "YEE"
@@ -182,7 +189,7 @@ void decompress_file(BitFile *in, FILE *out, TreeNode *tree, int size){
 //						For each node starting with the root node, the following is written:
 //							BYTES 	TYPE 	THING
 //							1 		char 	The character represented
-// 							4 		int 	The number of children. 0=Leaf
+// 							1 		byte 	The number of children. 0=Leaf
 // 						Then following this is written all of the children serialized as above(left-hand traversal)
 
 HeaderInfo *HeaderInfo_create_notree(unsigned int fsize){
@@ -339,7 +346,7 @@ int HeaderInfo_load_tree_size(HeaderInfo *hdr, byte *buffer){
 	memcpy(&nodecount_nbo, buffer, sizeof(int));
 	int nodes = htonl(nodecount_nbo);
 	hdr->_tree_node_count=nodes;
-	return nodes*(sizeof(byte)+sizeof(int));
+	return nodes*(sizeof(byte)+sizeof(byte));
 }
 void HeaderInfo_load_tree(HeaderInfo *hdr, byte *buffer){
 	hdr->tree = Tree_loadfrombuf(buffer);

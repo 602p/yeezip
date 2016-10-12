@@ -23,7 +23,7 @@ with open(sys.argv[1], 'rb') as fd:
 		nodenum=0
 		child_stack=[]
 		while nodenum<nodes:
-			node=struct.unpack("!cI", fd.read(5))
+			node=struct.unpack("!cB", fd.read(2))
 			print(("\t"*indent)+"Value: %s\tChildren: %i"%(repr(node[0].decode('ascii')) if node[0]!=b'\x00' else "<Container>", node[1]))
 			if node[1]:
 				indent+=1

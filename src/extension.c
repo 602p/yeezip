@@ -43,7 +43,7 @@ void load_extensions(){
 	d = opendir(EXTENSION_PATH);
 	if (d){
 		while ((dir = readdir(d)) != NULL){
-			if(dir->d_name[0]!='.'){
+			if(dir->d_name[strlen(dir->d_name)-1]=='o'){
 				char *fullname=malloc(strlen(EXTENSION_PATH)+strlen(dir->d_name)+2);
 				strcpy(fullname, EXTENSION_PATH);
 				strcat(fullname, "/");

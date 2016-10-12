@@ -103,6 +103,10 @@ void Map_del(Map *map, char *key){
 		free(current->value);
 	}
 
+	if(map->head == current){
+		map->head=0;
+	}
+
 	free(current);
 }
 
