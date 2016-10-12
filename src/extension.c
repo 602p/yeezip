@@ -10,11 +10,11 @@
 #define LOG_REGION "extmgr"
 
 void import_lib(char *path){
-	LOG_DEBUG("Loading extension %s -> \n",path);
+	LOG_DEBUG("Loading extension `%s` -> \n",path);
 	void* lib = dlopen(path, RTLD_NOW);
 	if(lib == NULL){
 		LOG_DEBUG(":(\n");
-		LOG_ERROR("Cannot load library %s\n", path);
+		LOG_ERROR("Cannot load library `%s`: %s\n", path, dlerror());
 		return;
 	}
 
@@ -44,12 +44,12 @@ void load_extensions(){
 	if (d){
 		while ((dir = readdir(d)) != NULL){
 			if(dir->d_name[0]!='.'){
-				char *fullname=malloc(strlen(EXTENSION_PATH)+strlen(dir->d_name)+1);
+				char *fullname=malloc(strlen(EXTENSION_PATH)+strlen(dir->d_name)+2);
 				strcpy(fullname, EXTENSION_PATH);
 				strcat(fullname, "/");
 				strcat(fullname, dir->d_name);
 				import_lib(fullname);
-				free(fullname);
+				// free(fullname);
 			}
 		}
 		closedir(d);

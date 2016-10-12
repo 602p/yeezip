@@ -30,6 +30,8 @@ defines={
 	"tests":["ENABLE_TESTS"]
 }
 
+python_extensions=["testpython"]
+
 ###########################################################################################
 
 files_as_string = " ".join(files)
@@ -59,7 +61,10 @@ if "rbx" in sys.argv:
 		barename=extention[:-2]
 		soname="extentions/"+barename+".so"
 		cmdline=basecmd+" "+fullname+" -shared -o "+soname
+		if barename in python_extensions:
+			cmdline+=" -lpython3.4m"
 		print("Building extention %s: %s"%(barename, cmdline))
+
 		os.system(cmdline)
 
 cmdline=basecmd+" -o "+output

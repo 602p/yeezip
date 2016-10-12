@@ -6,7 +6,7 @@
 #include "log.h"
 #include "main.h"
 
-#define EXTENSION_PATH "extentions"
+#define EXTENSION_PATH "./extentions"
 
 typedef TreeNode* treebuilder_sig(AppConfig *, char*); //config, char* text, Map* options
 typedef char* get_name_sig();
