@@ -52,24 +52,20 @@ TreeNode *ext_build_tree(AppConfig *parent_config, int *freqtable){
 
 	//END RUNNING CODE
 
-	PyObject *buf_obj=PyObject_GetAttrString(main_module, "yee_extension_exported_serialized_tree");
-	if(PyObject_CheckBuffer(buf_obj)){
-    	Py_buffer *buf=malloc(sizeof(Py_buffer));
-    	PyObject_GetBuffer(buf_obj, buf, PyBUF_C_CONTIGUOUS);
+	PyObject *bytes_obj=PyObject_GetAttrString(main_module, "yee_extension_exported_serialized_tree");
+	TreeNode *tree=0;
+	if(PyBytes_Check(bytes_obj)){
+    	char *buf=PyBytes_AsString(bytes_obj);
+    	LOG_SPAM("Building tree...\n");
+    	tree=Tree_loadfrombuf((byte*)buf);
     }else{
-    	LOG_FAIL("yee_extension_exported_serialized_tree is not a buffer\n");
+    	LOG_FAIL("yee_extension_exported_serialized_tree is not a bytes\n");
     }
 
     printf("\n");
 
 	Py_Finalize();
 
-	TreeNode *tree=TreeNode_create(256);
-	int i=0;
-	while(i<256){
-		TreeNode_attach(tree, TreeNode_create_leaf(i), i);
-		i++;
-	}
 	return tree;
 }
 

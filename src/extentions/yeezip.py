@@ -20,18 +20,21 @@ class TreeNode(object):
 
 	def export(self):
 		if self.child_count==0:
-			return [0, self.value]
+			return [self.value, 0]
 		
-		ret=[self.child_count]
+		ret=[0,self.child_count]
 		for item in self.children:
 			ret.extend(item.export())
 		return ret
 
-yee_extension_exported_serialized_tree=array.array('B')
+yee_extension_exported_serialized_tree=""
 
 def export(tree):
 	print("Exporting tree...")
-	yee_extension_exported_serialized_tree.extend(tree.export())
+	print(tree.export())
+	global yee_extension_exported_serialized_tree
+	yee_extension_exported_serialized_tree=array.array('B', tree.export()).tostring()
+	print(repr(yee_extension_exported_serialized_tree))
 
 def get_freq():
 	return yee_extension_frequency_table
