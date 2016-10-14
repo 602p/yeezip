@@ -4,6 +4,7 @@
 #include "args.h"
 #include "log.h"
 #include <python3.4/Python.h>
+#include "io.h"
 
 #define LOG_REGION "pyiface"
 
@@ -11,7 +12,7 @@ char *ext_get_name(){
 	return "pyiface";
 }
 
-TreeNode *ext_build_tree(AppConfig *parent_config, int *freqtable){
+TreeNode *ext_build_tree(AppConfig *parent_config, freqtable *ftable){
 	app_config=parent_config;
 	LOG_STATUS("***Starting up the python interpreter***\n");
 
@@ -30,24 +31,43 @@ TreeNode *ext_build_tree(AppConfig *parent_config, int *freqtable){
 			elem=elem->next;
 		}
 	}
+
+	LOG_DEBUG("Building python freqtable\n");
+	PyObject *py_freqtable = PyList_New(0);
+	int freqtable_idx=0;
+	while(freqtable_idx<256){
+		printf("Setting %i=%i\n", freqtable_idx, (*ftable)[freqtable_idx]);
+		PyList_Append(py_freqtable, PyLong_FromLong((long)((*ftable)[freqtable_idx])));
+		freqtable_idx++;
+	}
+
+	LOG_DEBUG("Done, installing values\n");
+
 	PyObject *main_module = PyImport_ImportModule("__main__");
     PyObject_SetAttrString(main_module, "yee_extension_parameters", app_arguments);
+    PyObject_SetAttrString(main_module, "yee_extension_frequency_table", py_freqtable);
 
     //RUN SOME CODE
+
+    LOG_DEBUG("Running code...\n");
 
 	FILE *fp_hdr=fopen("./extentions/yeezip.py", "r");
 	if(fp_hdr==0){
 		LOG_FAIL("Failed to open extentions interface header for the python interpreter\n");
 		return 0;
 	}
+	LOG_SPAM("Running bootstrap code\n");
 	PyRun_SimpleFile(fp_hdr, "./extentions/yeezip.py");
 	fclose(fp_hdr);
-	FILE *fp=fopen("./extentions/python_test.py", "r");
+	char *pyfn=Map_getstr(app_config->config, "pyalg");
+	LOG_STATUS("Running python algorithm %s\n", pyfn);
+	FILE *fp=fopen(pyfn, "r");
 	if(fp==0){
 		LOG_FAIL("Failed to open extention file\n");
 		return 0;
 	}
-	PyRun_SimpleFile(fp, "./extentions/python_test.py");
+	LOG_SPAM("(forreal)\n");
+	PyRun_SimpleFile(fp, pyfn);
 	fclose(fp);
 
 	//END RUNNING CODE

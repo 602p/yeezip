@@ -1,5 +1,7 @@
 import array
 
+print("Bootstrap python code running")
+
 class TreeNode(object):
 	def __init__(self, value=0, children=None):
 		self.value=value
@@ -17,6 +19,7 @@ class TreeNode(object):
 
 	def add(self, child):
 		self.children.append(child)
+		return child
 
 	def export(self):
 		if self.child_count==0:
@@ -30,14 +33,13 @@ class TreeNode(object):
 yee_extension_exported_serialized_tree=""
 
 def export(tree):
-	print("Exporting tree...")
-	print(tree.export())
 	global yee_extension_exported_serialized_tree
 	yee_extension_exported_serialized_tree=array.array('B', tree.export()).tostring()
-	print(repr(yee_extension_exported_serialized_tree))
 
 def get_freq():
 	return yee_extension_frequency_table
 
 def get_parameters():
 	return yee_extension_parameters
+
+print("Bootstrap python code finishing")

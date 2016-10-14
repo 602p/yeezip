@@ -51,6 +51,21 @@ int main(int argc, char *argv[]) {
 			exit(1);
 		}
 
+		LOG_STATUS("Building Freqtable\n");
+		FILE *file_in_ft=fopen(intent->infile, "r");
+		freqtable *ftbl=FreqTable_create(file_in_ft);
+		fclose(file_in_ft);
+
+		if(Arg_has("print_freqtable")){
+			int fidx=0;
+			printf("[");
+			while(fidx<256){
+				printf("%d, ", (*ftbl)[fidx]);
+				fidx++;
+			}
+			printf("]\n");
+		}
+
 		char *extention_name=intent->algorithm;
 
 		if(!Map_has(treebuilder_extensions, extention_name)){
@@ -60,17 +75,17 @@ int main(int argc, char *argv[]) {
 
 		treebuilder_sig *extension = Map_GETFUNC(treebuilder_extensions, extention_name, treebuilder_sig);
 
-		LOG_STATUS("Extention handle acquired\n");
+		LOG_DEBUG("Extention handle acquired\n");
 		LOG_STATUS("Calling extension %s...\n", extention_name);
 
-		tree=extension(app_config, 0);
+		tree=extension(app_config, ftbl);
 
 		if((void*)tree==0){
 			LOG_FAIL("Specified algorithm did not return a tree\n");
 			exit(1);
 		}
 
-		LOG_DEBUG("Building LookupTable\n");
+		LOG_STATUS("Building LookupTable\n");
 
 		LookupTable *table=create_table(tree);
 

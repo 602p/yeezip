@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <math.h>
+#include <string.h>
 #include "io.h"
 #include "log.h"
 
@@ -162,6 +163,18 @@ int min_bits_to_represent(int n){
 			return (int)bitwidth;
 		bitwidth++;
 	}
+}
+
+freqtable *FreqTable_create(FILE* file){
+	freqtable *table=malloc(sizeof(freqtable));
+	memset(table, 0, sizeof(freqtable));
+	byte c;
+	while(!feof(file)){
+		c=fgetc(file);
+		// printf("%i\n", c);
+		(*table)[c]++;
+	}
+	return table;
 }
 
 #undef LOG_REGION

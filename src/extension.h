@@ -5,10 +5,11 @@
 #include "map.h"
 #include "log.h"
 #include "main.h"
+#include "io.h"
 
 #define EXTENSION_PATH "./extentions"
 
-typedef TreeNode* treebuilder_sig(AppConfig *, int*); //config, pointer to 256 element array of byte freqencies
+typedef TreeNode* treebuilder_sig(AppConfig *, freqtable*); //config, pointer to 256 element array of byte freqencies
 typedef char* get_name_sig();
 
 Map *treebuilder_extensions;
