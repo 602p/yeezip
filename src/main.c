@@ -25,11 +25,6 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	if(intent->intent==INTENT_HELP){
-		display_help();
-		exit(0);
-	}
-
 	LOG_DEBUG("Logging initilized\n");
 
 	LOG_DEBUG("Loading Extensions...\n");
@@ -37,6 +32,11 @@ int main(int argc, char *argv[]) {
 	load_extensions();
 
 	LOG_STATUS("Extentions loaded.\n");
+
+	if(intent->intent==INTENT_HELP){
+		display_help(treebuilder_extensions);
+		exit(0);
+	}
 
 	if(intent->intent==INTENT_TEST){
 		dispatch_test(intent->testname);

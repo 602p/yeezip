@@ -22,6 +22,8 @@ TreeNode *ext_build_tree(AppConfig *parent_config, freqtable *ftable){
 	PyObject *app_arguments = PyDict_New();
 	LOG_SPAM("Entering mapping loop\n");
 	MapElement *elem;
+	LOG_SPAM("(loglevel) Setting loglevel=%d\n", app_config->loglevel);
+	PyDict_SetItemString(app_arguments, "loglevel", PyLong_FromLong((long)app_config->loglevel));
 	if(app_config->config->head!=0){
 		elem=app_config->config->head;
 		while(elem!=0){
@@ -36,7 +38,6 @@ TreeNode *ext_build_tree(AppConfig *parent_config, freqtable *ftable){
 	PyObject *py_freqtable = PyList_New(0);
 	int freqtable_idx=0;
 	while(freqtable_idx<256){
-		printf("Setting %i=%i\n", freqtable_idx, (*ftable)[freqtable_idx]);
 		PyList_Append(py_freqtable, PyLong_FromLong((long)((*ftable)[freqtable_idx])));
 		freqtable_idx++;
 	}

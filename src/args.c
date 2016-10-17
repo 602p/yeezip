@@ -213,23 +213,21 @@ Intent *parse_args(int argc, char *argv[]){
 	return intent;
 }
 
-void display_help(){
+void display_help(Map *extensions){
 	printf(
 		"compress - A huffman coding codec + tree generator\n"
 		"\n"
-		"Base Usage: compress [-v|-vv|-vvv|-vvv|-f<n>|-q] [-p<key>=<value> ...] [-h] {command}\n"
-		"  -v              : Set loglevel to STATUS\n"
-		"  -vv             : Set loglevel to DEBUG\n"
-		"  -vvv            : Set loglevel to SPAM (requires having been compiled with ENABLE_SPAM)\n"
-		"  -vvvv           : Set loglevel to ALLOC (requires having been compiled with ENABLE_SPAM)\n"
+		"Base Usage: compress [-v[v...]|-f<n>|-q] [-p<key>=<value> ...] [-P<key>] (-h|{command})\n"
+		"  -v[v][v][v][v]  : Set loglevel to lower levels depending on the number of vs\n"
+		"                        (i.e. v=STATUS, vv=DEBUG, vvv=SPAM, vvvv=ALLOC)\n"
 		"  -f<n>           : Sets loglevel to <n> where INFO=5, ALLOC=1, FAIL=8\n"
 		"  -q              : Disables logging. Equivilent to -f0\n"
 		"  -p<key>=<value> : Sets configuration parameter <key> to <value>. Both are strings. An = is required.\n"
-		"  -P<key>         : Sets configuration parameter <key> to \"1\"\n"
+		"  -P<key>         : Sets configuration parameter <key> to \"1\". Equivilent to -p<key>=1\n"
 		"  -h              : Show this fustercluck\n"
 		"\n"
 		"Commands:\n"
-		"Compress: -c INFILE (-a<algorithm>|-l IMPORTFILE) [-s SAVEFILE] (-d|-o OUTFILE)\n"
+		"Compress: -c INFILE (-a<algorithm>|-l IMPORTFILE) [-s SAVEFILE] [-O] (-d|-o OUTFILE)\n"
 		"  -c INFILE       : Read from INFILE and do compression on this\n"
 		"  -a<algorithm>   : Use <algorithm> (loaded from extensions) to generate a tree. If unspecified, use some number and choose best\n"
 		"  -l IMPORTFILE   : Read in tree from IMPORTFILE\n"
@@ -243,10 +241,22 @@ void display_help(){
 		"  -l IMPORTFILE   : Source tree for decompression from IMPORTFILE (for if file was compressed with -O)\n"
 		"  -o OUTFILE      : Save to OUTFILE\n"
 		"\n"
-		"Test: -t<name>\n"
-		"  -t<name>        : Run the test name <name>\n"
-		"\n"
-		"(>) Copyleft Louis Goessling 2016. Good luck!\n"
+		"Installed algorithms: "
+	);
+	if(extensions->head!=0){
+		MapElement *ele=extensions->head;
+		while(ele->next!=0){
+			printf(ele->key);
+			if(ele->next->next!=0){
+				printf(", ");
+			}
+			ele=ele->next;
+		}
+	}else{
+		printf("<NONE!>");
+	}
+	printf(
+		"\n\n(>) Copyleft Louis Goessling 2016. Good luck!\n"
 	);
 }
 

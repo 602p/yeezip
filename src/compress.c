@@ -154,7 +154,7 @@ void decompress_file(BitFile *in, FILE *out, TreeNode *tree, int size){
 		width=min_bits_to_represent(pos->children);
 		val=BitFile_readint(in, width);
 		pos=TreeNode_traverse(pos, val);
-		printf("%i:%i->(%i)%i\t", in->buffer, in->position, width, val);
+		// printf("%i:%i->(%i)%i\t", in->buffer, in->position, width, val);
 		// printf("val=%i, pos->value=%c, pos->children=%i\n", val, pos->value, pos->children);
 		if(TreeNode_leaf(pos)){
 			fprintf(out, "%c", pos->value);

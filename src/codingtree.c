@@ -63,7 +63,8 @@ int TreeNode_count(TreeNode* node){
 }
 
 void TreeNode_write(TreeNode *node, char *buffer, int *buf_pos){
-	LOG_SPAM("Writing node where value=%c children=%i buf_pos=%i memaddr=%i\n", node->value, node->children, *buf_pos, buffer+(*buf_pos));
+	if(Arg_has("debug_tree_save"))
+		LOG_SPAM("Writing node where value=%c children=%i buf_pos=%i memaddr=%i\n", node->value, node->children, *buf_pos, buffer+(*buf_pos));
 	memcpy(buffer+(*buf_pos), &(node->value), sizeof(byte));
 	(*buf_pos)+=sizeof(byte);
 
@@ -106,7 +107,8 @@ TreeNode *TreeNode_load(byte *buffer, int *buf_pos){
 	node->children=children_as_byte;
 	*buf_pos+=sizeof(byte);
 
-	LOG_SPAM("Loaded node value=%c children=%i, buf_pos=%i\n", node->value, node->children, *buf_pos);
+	if(Arg_has("debug_tree_load"))
+		LOG_SPAM("Loaded node value=%c children=%i, buf_pos=%i\n", node->value, node->children, *buf_pos);
 
 	if(node->children>0){
 		node->links=malloc(sizeof(TreeNode*)*node->children);

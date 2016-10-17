@@ -12,3 +12,9 @@ with open("hexdata_small.txt", 'w') as fd:
 		for _ in range(5):
 			fd.write(format(random.randint(0, (16**3)-1), '#012x')+" ")
 		fd.write("\n")
+
+with open("hexdata_large.txt", 'w') as fd:
+	for _ in range(100000000000):
+		for _ in range(50):
+			fd.write(format(random.randint(0, (16**3)-1), '#012x')+" ")
+		fd.write("\n")

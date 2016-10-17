@@ -171,7 +171,6 @@ freqtable *FreqTable_create(FILE* file){
 	byte c;
 	while(!feof(file)){
 		c=fgetc(file);
-		// printf("%i\n", c);
 		(*table)[c]++;
 	}
 	return table;
