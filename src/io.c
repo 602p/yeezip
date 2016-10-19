@@ -132,6 +132,14 @@ int BitFile_readint(BitFile *file, int size){
 	return val;
 }
 
+void BitFile_writeint(BitFile *file, int value, int size){
+	int pos=0;
+	while (pos<size){
+		BitFile_write(file, Byte_getbit(value, pos));
+		pos++;
+	}
+}
+
 bool BitFile_has_more(BitFile *file){
 	return !(file->position==8 && file->read_position==file->size-1);
 }

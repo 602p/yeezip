@@ -8,7 +8,6 @@
 #include "extension.h"
 #include "log.h"
 #include "args.h"
-#include "tests/dispatcher.h"
 #include "compress.h"
 #include "io.h"
 
@@ -28,18 +27,13 @@ int main(int argc, char *argv[]) {
 	LOG_DEBUG("Logging initilized\n");
 
 	LOG_DEBUG("Loading Extensions...\n");
-	init_extension_manager();
-	load_extensions();
+	Map *treebuilder_extensions=Map_create();
+	load_extensions("./extentions", treebuilder_extensions);
 
 	LOG_STATUS("Extentions loaded.\n");
 
 	if(intent->intent==INTENT_HELP){
 		display_help(treebuilder_extensions);
-		exit(0);
-	}
-
-	if(intent->intent==INTENT_TEST){
-		dispatch_test(intent->testname);
 		exit(0);
 	}
 

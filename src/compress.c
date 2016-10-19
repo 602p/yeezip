@@ -133,11 +133,7 @@ void compress_file(FILE *in, BitFile *out, LookupTable *table, int size){
 		}else{
 			write_pos=0;
 			while(write_pos<(*table)[currbyte].len){
-				bit_pos=0;
-				while(bit_pos<(*table)[currbyte].widths[write_pos]){
-					BitFile_write(out, Byte_getbit((*table)[currbyte].values[write_pos], bit_pos));
-					bit_pos++;
-				}
+				BitFile_writeint(out, (*table)[currbyte].values[write_pos], (*table)[currbyte].widths[write_pos]);
 				write_pos++;
 			}
 		}
@@ -239,7 +235,7 @@ byte *HeaderInfo_save(HeaderInfo *header, int *size_out){
 
 	if(!(header->flags & HF_NOTREE)){
 		//We need to save the tree too...
-		tree_buf_size=Tree_savetobuf_size(header->tree);
+		tree_buf_size=Tree_savetobuf_size(TreeNode_count(header->tree));
 		tree_buf=Tree_savetobuf(header->tree);
 		tree_node_count=TreeNode_count(header->tree);
 

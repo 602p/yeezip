@@ -1,6 +1,20 @@
+"""Build tool for yeezip.
+
+Trying to understand make/cmake/whatever made me sad so I hacked this together.
+It's just a dumb command line builder that takes a couple options.
+
+Options are just words on the command line:
+	espam 		Sets -DENABLE_SPAM (otherwise log commands below STATUS evaporate at compile-time)
+	lln 		Sets -DLOG_LINENO (include filename and line when logging)
+	debug 		Same as using `espam lln`
+	tests 		Build using the criterion main instead of cli main. Causes linking against libcriterion
+
+run like `python -m build <args...>`
+"""
+
 import os, sys
 
-files = [
+files = [ #List of source code files to include
 	"src/main.c",
 	"src/codingtree.c",
 	"src/map.c",
@@ -9,30 +23,26 @@ files = [
 	"src/io.c",
 	"src/extension.c",
 	"src/compress.c",
-	"src/tests/maptest.c",
-	"src/tests/treetest.c",
-	"src/tests/functionmaptest.c",
-	"src/tests/extensiontest.c",
-	"src/tests/mmap.c",
-	"src/tests/bittest.c",
-	"src/tests/dispatcher.c",
 	"src/tests.c"
 ]
 
-extention_dir="src/extentions"
+extention_dir="src/extentions" #Directory of extension files
+                               #(Those ending in .c are compiled to SOs, .py copied to the extension folder)
 
-output = "compress"
+output = "compress" #Output executable name
 
-defines={
+defines={ #Mapping of cli_flag->[preprocessor macro to enable, ...]
 	"lln":["LOG_LINENO"],
 	"espam":["ENABLE_SPAM"],
 	"debug":["LOG_LINENO", "ENABLE_SPAM"],
 	"tests":["ENABLE_TESTS"]
 }
 
-python_extensions=["testpython","python_interface"]
+python_extensions=["testpython","python_interface"] #extension names (stripped of .c)
+                                                    #That need to link to libpython3.4m
 
 ###########################################################################################
+#Horrible crap below
 
 files_as_string = " ".join(files)
 

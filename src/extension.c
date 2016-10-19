@@ -9,7 +9,7 @@
 
 #define LOG_REGION "extmgr"
 
-void import_lib(char *path){
+ExtensionData* import_lib(char *path){
 	LOG_DEBUG("Loading extension `%s` -> \n",path);
 	void* lib = dlopen(path, RTLD_NOW);
 	if(lib == NULL){
@@ -24,8 +24,11 @@ void import_lib(char *path){
 		char *temp=get_name();
 		char *name=malloc(strlen(temp));
 		strcpy(name, temp);
-		Map_set(treebuilder_extensions, name, build_tree);
-		LOG_DEBUG("Registered extension `%s`\n", name);
+		LOG_DEBUG("Loaded Extension `%s`\n", name);
+		ExtensionData *ret=malloc(sizeof(ExtensionData));
+		ret->name=temp;
+		ret->builder=build_tree;
+		return ret;
 	}else{
 		LOG_DEBUG(":(\n");
 		LOG_ERROR("Invalid library %s\n", path);
@@ -33,23 +36,20 @@ void import_lib(char *path){
 	// dlclose(lib); //Unloads functions if called
 }
 
-void init_extension_manager(){
-	treebuilder_extensions=Map_create();
-}
-
-void load_extensions(){
+void load_extensions(char *folder, Map* treebuilder_extensions){
 	DIR *d;
 	struct dirent *dir;
-	d = opendir(EXTENSION_PATH);
+	d = opendir(folder);
 	if (d){
 		while ((dir = readdir(d)) != NULL){
 			if(dir->d_name[strlen(dir->d_name)-1]=='o'){
-				char *fullname=malloc(strlen(EXTENSION_PATH)+strlen(dir->d_name)+2);
-				strcpy(fullname, EXTENSION_PATH);
+				char *fullname=malloc(strlen(folder)+strlen(dir->d_name)+2);
+				strcpy(fullname, folder);
 				strcat(fullname, "/");
 				strcat(fullname, dir->d_name);
-				import_lib(fullname);
-				// free(fullname);
+				ExtensionData *d=import_lib(fullname);
+				Map_set(treebuilder_extensions, d->name, d->builder);
+				free(d);
 			}
 		}
 		closedir(d);

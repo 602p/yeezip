@@ -34,6 +34,7 @@ void BitFile_write(BitFile *file, bool bit);
 bool BitFile_readbit(BitFile *file);
 bool BitFile_has_more(BitFile *file);
 int BitFile_readint(BitFile *file, int size);
+void BitFile_writeint(BitFile *file, int value, int size);
 
 typedef int freqtable[256];
 

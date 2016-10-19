@@ -8,6 +8,12 @@
 #define LOG_REGION "args"
 
 char *consume_next(int argc, char *argv[], int index){
+	//Consume the next value (starting at index) from the command line in argc, argv
+	//The idiom for usage of this helper is
+	//		char *value=consume_next(argc, argv, current_arg)
+	//		if(value==0) <fail>
+	// 		else: <succeed>
+	// 		current_arg++;
 	++index;
 	if(index!=argc){
 		return argv[index];
@@ -17,6 +23,7 @@ char *consume_next(int argc, char *argv[], int index){
 
 Intent *parse_args(int argc, char *argv[]){
 	Intent *intent=malloc(sizeof(Intent));
+	//Initilize an Intent, this holds the options passed to the program
 
 	intent->intent=0;
 	intent->invalid=false;
@@ -29,25 +36,29 @@ Intent *parse_args(int argc, char *argv[]){
 	intent->testname="";
 	intent->skip_save_tree=false;
 
-	char *equals_position;
-	char *name_temp;
-	int name_length;
-	char *next;
-	int arglen;
+	char *name_temp; //Will hold name of key=value args
+	int name_length; //Will hold length of ^
+	char *next; //Will hold result of invocations of consume_next
+	int arglen; //Whole arg length used in key=value args
 
 	int current_arg=1;
 	while (current_arg<argc){
 		if(argv[current_arg][0]!='-'){
 			LOG_WARN("Invalid option (ignored): %s\n", argv[current_arg]);
+			//Warn on random crap in input.
+			//Won't trip on filenames because functions using a space-delimited parameter
+			//jump current_arg right over it after calling consume_next
 		}else{
 			switch(argv[current_arg][1]){
-				case 'h':
-					if(intent->intent) goto multiple_intents;
+				//Switch on the first character of the arg (after the -)
+				//There are no "long" args so this is enough
+				case 'h': //Help command
+					if(intent->intent) goto multiple_intents; //GOTO??? OH GOD!!
 					LOG_SPAM("intent=INTENT_HELP\n");
 					intent->intent=INTENT_HELP;
 					break;
 
-				case 'c':
+				case 'c': //Compress command. Filename to compress follows
 					if(intent->intent) goto multiple_intents;
 					LOG_SPAM("intent=INTENT_COMPRESS\n");
 					intent->intent=INTENT_COMPRESS;
@@ -60,7 +71,7 @@ Intent *parse_args(int argc, char *argv[]){
 
 					break;
 
-				case 'o':
+				case 'o': //Set output file
 					next=consume_next(argc, argv, current_arg);
 					if(next) intent->outfile=next;
 					else goto no_file;
@@ -69,8 +80,8 @@ Intent *parse_args(int argc, char *argv[]){
 
 					break;
 
-				case 'e':
-				case 'x':
+				case 'e': //Fall through...
+				case 'x': //Decompress operation. Filename to decompress follows
 					if(intent->intent) goto multiple_intents;
 					LOG_SPAM("intent=INTENT_DECOMPRESS\n");
 					intent->intent=INTENT_DECOMPRESS;
@@ -91,26 +102,29 @@ Intent *parse_args(int argc, char *argv[]){
 					LOG_SPAM("testname=%s\n", intent->testname);
 					break;
 
-				case 'a':
-					intent->algorithm=argv[current_arg]+2;
+				case 'a': //Set algorithm (form is -a<value> , no space)
+					intent->algorithm=argv[current_arg]+2; //Skip first two bytes, as they are -a
 					LOG_SPAM("algorithm=%s\n", intent->algorithm);
 					break;
 
-				case 'v':
-					app_config->loglevel-=strlen(argv[current_arg])-1;
+				case 'v': //Verbose mode
+					app_config->loglevel-=strlen(argv[current_arg])-1; //Decrement by # of vs
 					LOG_SPAM("loglevel=%i\n", app_config->loglevel);
 					break;
 
-				case 'q':
+				case 'q': //Quiet mode
+				          //(Suppresses only stuff generated thru normal logging facilities, won't
+				          // suppress stuff coming out thru printfs used for debugging
+				          // (e.g. when -Pprint_table is used to debug the table transformation))
 					app_config->loglevel=999;
 					break;
 
-				case 'f':
-					app_config->loglevel=atoi(argv[current_arg]+2);
+				case 'f': //Set log level to the value (passed by -f<value>)
+					app_config->loglevel=atoi(argv[current_arg]+2); //Skip first two bytes, as they are -f
 					LOG_SPAM("loglevel=%i\n", app_config->loglevel);
 					break;
 
-				case 's':
+				case 's': //Save tree to file passed next
 					next=consume_next(argc, argv, current_arg);
 					if(next) intent->savefile=next;
 					else goto no_file;
@@ -119,12 +133,12 @@ Intent *parse_args(int argc, char *argv[]){
 
 					break;
 
-				case 'O':
+				case 'O': //Omit the tree from the output compressed file
 					intent->skip_save_tree=true;
 					LOG_SPAM("skip_save_tree=true\n");
 					break;
 
-				case 'l':
+				case 'l': //Load the tree to use from the following arg
 					next=consume_next(argc, argv, current_arg);
 					if(next) intent->importfile=next;
 					else goto no_file;
@@ -133,28 +147,56 @@ Intent *parse_args(int argc, char *argv[]){
 
 					break;
 
-				case 'd':
+				case 'd': //Dont do the actual compression, just generate a tree
 					intent->do_compress=false;
 					LOG_SPAM("do_compress=false\n");
 					break;
 
-				case 'p':
+				case 'p': //Save a value to the app_config config mapping via the form
+				          // -p<key>=<value>. <key> and <value> can contain any string of bytes
+				          // you manage to cram into argv (excluding null, and in the case
+				          // of the key =, as that is the terminator)
+
 					name_length=0;
-					arglen=strlen(argv[current_arg]);
+					arglen=strlen(argv[current_arg]); //Get the length of the whole argument
 					while(argv[current_arg][2+name_length]!='='){
+						//Iterate over the current argument, starting at 2 (first two bytes are -p)
+						//and count the length of the key portion of the <key>=<value> pair
 						++name_length;
 						if(name_length>=arglen){
+							//Skip out on this if there isn't a = anywhere
+							//NOTE: it is entirely value to set a key to an empty string, and this
+							// would be accomplished with -pfoo= , and you'd end up with the mapping
+							// foo => ''
 							goto invalid_parameter;
 						}
 					}
+
 					name_temp=malloc(name_length+1);
+					//Create the storage to store just the name (+ a null byte) for in the map
+
 					strncpy(name_temp, argv[current_arg]+2, name_length);
+					//Copy the name into the new buffer (incl trailing null), starting at +2 as
+					// first two bytes are -p
+
 					Map_setstr(app_config->config, name_temp, argv[current_arg]+2+name_length+1);
+					//Do the actual argument set. Offset for the value is...
+					// argv[current_value]	:	Base position of the whole string
+					// +2 					:	Skip the -p at the start of the arg
+					// +name_length 		:	Skip forward past the name, to the value
+					// +1					:	Skip the = sign
+					//NOTE: No type transformation is preformed, and all values are stored as strings
+					// (this means that setting `-pfoo=1`, and then doing 
+					//  Map_getint(app_config->config, 'foo') DOSENT EQUAL (int)1
+					//  and is probably segfault-causing)
+
 					LOG_SPAM("Set parameter `%s` -> `%s`\n", name_temp, argv[current_arg]+2+name_length+1);
 					break;
 
-				case 'P':
+				case 'P': //Set a flag to the literal string '1' (for usage as flags)
 					Map_setstr(app_config->config, argv[current_arg]+2, "1");
+					//Set the argument. Offset is +2 to skip the -P at the start of the arg
+
 					LOG_SPAM("Set parameter `%s` -> `1` (-P directive)\n", argv[current_arg]+2);
 					break;
 
@@ -163,6 +205,8 @@ Intent *parse_args(int argc, char *argv[]){
 			}
 		}
 		++current_arg;
+		//Advance an argument. NOTE: This counter may actually move forward during the loop body
+		// as well as here, as a result of a consume_next
 	}
 
 	LOG_SPAM("intent->intent -> `%i`\n (0=INTENT_NONE, 1=INTENT_HELP, 2=INTENT_COMPRESS, 3=INTENT_DECOMPRESS, 4=INTENT_TEST)\n", intent->intent);
@@ -182,10 +226,21 @@ Intent *parse_args(int argc, char *argv[]){
 		goto fail;
 	}
 
+	//Check that we have both an input and output when we're operating
+	//exception being that if we are compressing with -d set (don't save)
+	//it's ok to lack an output
+
 	if(intent->intent==INTENT_COMPRESS || intent->intent==INTENT_DECOMPRESS){
-		if((strlen(intent->infile)==0 || (strlen(intent->outfile)==0) &&((intent->intent==INTENT_COMPRESS && intent->do_compress) || intent->intent==INTENT_DECOMPRESS))){
-			LOG_FAIL("Specified to compress (without -d) or decompress but did not provide both an input and output file\n");
+		if(strlen(intent->infile)==0){
+			LOG_ERROR("Specified to compress/decompress without an input file.\n")
 			goto fail;
+		}
+
+		if (!(intent->intent==INTENT_COMPRESS && !intent->do_compress)){
+			if(strlen(intent->outfile)==0){
+				LOG_ERROR("Specified to compress (w/o -d) /decompress without an output file.\n")
+				goto fail;
+			}
 		}
 	}
 
@@ -195,6 +250,10 @@ Intent *parse_args(int argc, char *argv[]){
 	}
 
 	return intent;
+
+	//Now, before y'all knock the goto I think that the flow of this (horribly large) function
+	// is massivley simplified by this little construct here, as opposed to having the error,
+	// intent invalidation and return stuff in every possible failure point
 
 	multiple_intents:
 	LOG_FAIL("Cannot specify more than one Intent\n");
