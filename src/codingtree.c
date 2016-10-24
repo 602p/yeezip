@@ -70,8 +70,7 @@ int Tree_savetobuf_size(int nodes){
 }
 
 void TreeNode_write(TreeNode *node, char *buffer, int *buf_pos){
-	if(Arg_has("debug_tree_save"))
-		printf("Writing node where value=%c children=%i buf_pos=%i memaddr=%i\n", node->value, node->children, *buf_pos, buffer+(*buf_pos));
+	LOG_SPAM("Writing node where value=%c children=%i buf_pos=%i memaddr=%i\n", node->value, node->children, *buf_pos, buffer+(*buf_pos));
 	
 	memcpy(buffer+(*buf_pos), &(node->value), sizeof(byte));
 	(*buf_pos)+=sizeof(byte);
@@ -106,8 +105,7 @@ TreeNode *TreeNode_load(byte *buffer, int *buf_pos){
 	//Snarf out the child count as a byte, and implicitly cast to int for storage in the new struct
 	// (this ovverwrites the value set in TreeNode_create_leaf)
 
-	if(Arg_has("debug_tree_load"))
-		printf("Loaded node value=%c children=%i, buf_pos=%i\n", node->value, node->children, *buf_pos);
+	LOG_SPAM("Loaded node value=%c children=%i, buf_pos=%i\n", node->value, node->children, *buf_pos);
 
 	if(node->children>0){
 		node->links=malloc(sizeof(TreeNode*)*node->children);

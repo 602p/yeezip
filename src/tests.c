@@ -2,6 +2,8 @@
 #include <criterion/criterion.h>
 #include "map.h"
 #include "codingtree.h"
+#include "log.h"
+#include <stdio.h>
 
 Test(demo, simple_success){
 	cr_assert(1, "Hello World!");
@@ -160,6 +162,41 @@ Test(tree, tree_access_l2){
 	TreeNode_destroy(dt);
 }
 
+Test(tree, tree_count){
+	TreeNode *dt=create_demotree();
+	cr_assert(TreeNode_count(dt)==9, "Incorrect TreeNode_count result");
+	TreeNode_destroy(dt);
+}
 
+Test(tree, tree_serialize){
+	TreeNode *dt=create_demotree();
+	cr_assert(Tree_savetobuf_size(TreeNode_count(dt))==18, "Incorrect size for saving");
+	void *buf=Tree_savetobuf(dt);
+	TreeNode *new=Tree_loadfrombuf(buf);
+	TreeNode_destroy(dt);
+	TreeNode_destroy(new);
+	free(buf);
+}
+
+Test(tree, tree_serialize_cmp){
+	TreeNode *dt=create_demotree();
+	cr_assert(Tree_savetobuf_size(TreeNode_count(dt))==18, "Incorrect size for saving");
+	void *buf=Tree_savetobuf(dt);
+	TreeNode *new=Tree_loadfrombuf(buf);
+	
+	cr_assert(TreeNode_count(dt)==TreeNode_count(new), "New nodes!=Old nodes");
+	cr_assert(TreeNode_traverse(new, 0)->value=='a', "New leaf (0) != Old leaf");
+	cr_assert(TreeNode_traverse(TreeNode_traverse(new, 1),0)->value=='b', "New leaf (1->0) != Old leaf");
+	cr_assert(TreeNode_traverse(TreeNode_traverse(new, 1),1)->value=='c', "New leaf (1->1) != Old leaf");
+	cr_assert(TreeNode_traverse(TreeNode_traverse(new, 1),2)->value=='d', "New leaf (1->2) != Old leaf");
+	cr_assert(TreeNode_traverse(TreeNode_traverse(TreeNode_traverse(new, 1),3),0)->value=='e',
+		"New leaf (1->3->0) != Old leaf");
+	cr_assert(TreeNode_traverse(TreeNode_traverse(TreeNode_traverse(new, 1),3),1)->value=='f',
+		"New leaf (1->3->1) != Old leaf");
+
+	TreeNode_destroy(dt);
+	TreeNode_destroy(new);
+	free(buf);
+}
 
 #endif
