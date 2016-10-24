@@ -1,6 +1,7 @@
 #ifdef ENABLE_TESTS
 #include <criterion/criterion.h>
 #include "map.h"
+#include "codingtree.h"
 
 Test(demo, simple_success){
 	cr_assert(1, "Hello World!");
@@ -78,5 +79,87 @@ Test(map, map_getset_func){
 	cr_assert(Map_GETFUNC(map, "test", map_getset_func_sig)()==1234, "Called func did not return correct value");
 	Map_destroy(map);
 }
+
+Test(tree, tree_create_destroy){
+	TreeNode *tree=TreeNode_create(1);
+	TreeNode_attach(tree, TreeNode_create_leaf('a'), 0);
+	TreeNode_destroy(tree);
+}
+
+//Creates a simple tree for testing with
+//Looks like this:
+//              *
+//             / \
+//            a   *
+//              // \\
+//             bc  d*
+//                 / \
+//                e   f
+
+TreeNode* create_demotree(){
+	TreeNode* root=TreeNode_create(2);
+	TreeNode* l1=TreeNode_create(4);
+	TreeNode* l2=TreeNode_create(2);
+	TreeNode_attach(root, TreeNode_create_leaf('a'), 0);
+	TreeNode_attach(root, l1, 1);
+	TreeNode_attach(l1, TreeNode_create_leaf('b'), 0);
+	TreeNode_attach(l1, TreeNode_create_leaf('c'), 1);
+	TreeNode_attach(l1, TreeNode_create_leaf('d'), 2);
+	TreeNode_attach(l1, l2, 3);
+	TreeNode_attach(l2, TreeNode_create_leaf('e'), 0);
+	TreeNode_attach(l2, TreeNode_create_leaf('f'), 1);
+	return root;
+}
+
+Test(tree, tree_create_demotree){
+	TreeNode_destroy(create_demotree());
+}
+
+Test(tree, tree_leaf){
+	TreeNode* dt=create_demotree();
+	cr_assert(!TreeNode_leaf(dt), "Wrong return (true) for TreeNode_leaf call on node");
+	TreeNode_destroy(dt);
+}
+
+Test(tree, tree_access_l0){
+	TreeNode* dt=create_demotree();
+	TreeNode* res=TreeNode_traverse(dt, 0);
+	cr_assert(TreeNode_leaf(res), "Wrong return (false) for TreeNode_leaf call on leaf");
+	cr_assert(res->value=='a', "Incorrect value in node after traversing one level");
+	cr_assert(!TreeNode_leaf(TreeNode_traverse(dt, 1)),
+		"Wrong return (true) for TreeNode_leaf call on traversed node");
+	TreeNode_destroy(dt);
+}
+
+Test(tree, tree_access_l1){
+	TreeNode* dt=create_demotree();
+	TreeNode* next=TreeNode_traverse(dt, 1);
+	cr_assert(TreeNode_leaf(TreeNode_traverse(next, 0)),
+		"Wrong return (false) for TreeNode_leaf call on leaf (1->0)");
+	cr_assert(TreeNode_leaf(TreeNode_traverse(next, 1)),
+		"Wrong return (false) for TreeNode_leaf call on leaf (1->1)");
+	cr_assert(TreeNode_leaf(TreeNode_traverse(next, 2)),
+		"Wrong return (false) for TreeNode_leaf call on leaf (1->2)");
+	cr_assert(!TreeNode_leaf(TreeNode_traverse(next, 3)),
+		"Wrong return (true) for TreeNode_leaf call on node (1->3)");
+	cr_assert(TreeNode_traverse(next, 0)->value=='b', "Wrong value for leaf (1->0)");
+	cr_assert(TreeNode_traverse(next, 1)->value=='c', "Wrong value for leaf (1->1)");
+	cr_assert(TreeNode_traverse(next, 2)->value=='d', "Wrong value for leaf (1->2)");
+	TreeNode_destroy(dt);
+}
+
+Test(tree, tree_access_l2){
+	TreeNode* dt=create_demotree();
+	TreeNode* next=TreeNode_traverse(TreeNode_traverse(dt, 1), 3);
+	cr_assert(TreeNode_leaf(TreeNode_traverse(next, 0)),
+		"Wrong return (false) for TreeNode_leaf call on node (1->3->0)");
+	cr_assert(TreeNode_leaf(TreeNode_traverse(next, 1)),
+		"Wrong return (false) for TreeNode_leaf call on node (1->3->1)");
+	cr_assert(TreeNode_traverse(next, 0)->value=='e', "Wrong value for leaf (1->3->0)");
+	cr_assert(TreeNode_traverse(next, 1)->value=='f', "Wrong value for leaf (1->3->1)");
+	TreeNode_destroy(dt);
+}
+
+
 
 #endif

@@ -74,7 +74,7 @@ if "rbx" in sys.argv:
 		cmdline=basecmd+" "+fullname+" -shared -o "+soname
 		if barename in python_extensions:
 			cmdline+=" -lpython3.4m"
-		print("Building extention %s: %s"%(barename, cmdline))
+		# print("Building extention %s: %s"%(barename, cmdline))
 
 		os.system(cmdline)
 	os.system("cp src/extentions/*.py extentions")
@@ -82,7 +82,7 @@ if "rbx" in sys.argv:
 cmdline=basecmd+" -o "+output
 
 if "dbm" not in sys.argv:
-	print("Executing:"+cmdline)
+	# print("Executing:"+cmdline)
 
 	os.system(cmdline)
 
