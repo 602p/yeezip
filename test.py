@@ -40,4 +40,15 @@ assert "Extention deeznuts not found" in \
        callc("-c", "samples/hexdata.txt", "-o", "out.yz", "-adeeznuts"),\
        "Didn't fail with invalid extension"
 
+assert "Saving tree" in callc("-c", "samples/hexdata_small.txt", "-o", "out.yz", "-O", "-s", "out.yt",
+	"-astatic", "-ptree=hex2"), "Didn't save tree outside of file"
+
+assert "HF_NOTREE set" in callc("-x", "out.yz", "-o", "out.txt"), "Didn't fail w/o tree (or tree was saved)"
+
+assert callc("-x", "out.yz", "-o", "out.txt", "-l", "out.yt").code==0, "Failed to decompress w/ external tree"
+
+assert ""==call("diff", "samples/hexdata_small.txt", "out.txt"), "Input != output when using external tree"
+
+call("rm", "out.yz", "out.yt", "out.txt")
+
 print("ALL GOOD!")
