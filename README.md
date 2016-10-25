@@ -22,7 +22,7 @@ So for your first build you should probably run `python3 -m build rbx lln espam`
 CLI help can be accessed from `./compress -h`
 Example usage
  * `./compress -c foo.txt -o out.yz` Compresses foo.txt to out.yz
- * `./compress -x out.yz - foo_out.txt` Decompresses out.yz to foo.txt
+ * `./compress -x out.yz -o foo_out.txt` Decompresses out.yz to foo.txt
 All sorts of other options are available.
 
 ##Testing
