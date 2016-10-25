@@ -209,6 +209,12 @@ Intent *parse_args(int argc, char *argv[]){
 					break;
 
 				default:
+					if(strcmp(argv[current_arg], "--yee")==0){
+						printf("%s",
+							#include "yee.txt"
+						);
+						exit(0);
+					}
 					LOG_WARN("Invalid option (ignored): %s\n", argv[current_arg]);
 			}
 		}
