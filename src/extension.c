@@ -15,7 +15,7 @@ ExtensionData* import_lib(char *path){
 	if(lib == NULL){
 		LOG_DEBUG(":(\n");
 		LOG_ERROR("Cannot load library `%s`: %s\n", path, dlerror());
-		return;
+		return 0;
 	}
 
 	treebuilder_sig *build_tree = dlsym(lib, "ext_build_tree");
@@ -32,6 +32,7 @@ ExtensionData* import_lib(char *path){
 	}else{
 		LOG_DEBUG(":(\n");
 		LOG_ERROR("Invalid library %s\n", path);
+		return 0;
 	}
 	// dlclose(lib); //Unloads functions if called
 }

@@ -1,6 +1,7 @@
 #ifndef __ARGS_H__
 #define __ARGS_H__
 
+#define INTENT_NONE 0
 #define INTENT_HELP 1
 #define INTENT_COMPRESS 2
 #define INTENT_DECOMPRESS 3
@@ -47,8 +48,12 @@ Intent *parse_args(int argc, char *argv[]);
 //Create and fill an intent from args specified by argc and argv
 //Always returns an intent that provides at least `invalid`
 //other arguments only filled as needed
+//NOTE: You probably shouldn't free the any of the strings in the Intent returned
+// because they are pointers to elements in the argv passed to parse_args
 
 void display_help();
 //Print out the help message
+
+void Intent_destroy(Intent *i);
 
 #endif

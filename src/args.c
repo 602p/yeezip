@@ -22,6 +22,13 @@ char *consume_next(int argc, char *argv[], int index){
 }
 
 Intent *parse_args(int argc, char *argv[]){
+	//Abandon hope all ye who enter here
+	//jk, it's not that bad
+	//It's a gigantic single function because there's a ton of shared state
+	// and it didn't seem worthwhile to split out, especially considering
+	// that it would be horribly ugly in C
+
+	
 	Intent *intent=malloc(sizeof(Intent));
 	//Initilize an Intent, this holds the options passed to the program
 
@@ -296,8 +303,8 @@ void display_help(Map *extensions){
 		"  -d              : Don't actually compress, just generate tree. For use with -s\n"
 		"  -o OUTFILE      : Save output to OUTFILE\n"
 		"\n"
-		"Decompress: -d FILE [-l IMPORTFILE] -o OUTFILE\n"
-		"  -d FILE         : Decompress FILE\n"
+		"Decompress: -x FILE [-l IMPORTFILE] -o OUTFILE\n"
+		"  -x FILE         : Decompress FILE\n"
 		"  -l IMPORTFILE   : Source tree for decompression from IMPORTFILE (for if file was compressed with -O)\n"
 		"  -o OUTFILE      : Save to OUTFILE\n"
 		"\n"
