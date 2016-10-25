@@ -10,7 +10,7 @@
 #define EXTENSION_PATH "./extentions"
 
 //Extension interface definitions
-typedef TreeNode* treebuilder_sig(AppConfig *, freqtable*); //config, pointer to 256 element array of byte freqencies
+typedef TreeNode* treebuilder_sig(int loglevel, Map* options, freqtable*); //config, pointer to 256 element array of byte freqencies
 typedef char* get_name_sig(); //Return the name of the extension
 
 typedef struct ExtensionData_struct{

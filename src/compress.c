@@ -92,8 +92,12 @@ void fill_table(LookupTable *table, TreeNode *node, int depth, int *path, int *w
 }
 
 LookupTable *create_table(TreeNode *root){
+	return create_table_d(root, 50);
+}
+
+LookupTable *create_table_d(TreeNode *root, int depth){
 	LookupTable *table=malloc(sizeof(LookupTable));
-	int search_depth=Arg_get_int("max_search_depth", 50);
+	int search_depth=depth;
 	LOG_SPAM("create_table search_depth=%i\n", search_depth);
 	int *path=malloc(sizeof(int)*search_depth);
 	int *widths=malloc(sizeof(int)*search_depth);

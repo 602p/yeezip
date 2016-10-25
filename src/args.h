@@ -39,15 +39,9 @@ typedef struct Intent_struct{
 	//Name of algorithm to use for compression. If nil, multiple will be tried and the best picked
 
 	char *testname;
+
+	Map *options;
 } Intent;
-
-typedef struct AppConfig_struct{
-	int loglevel;
-	FILE *logfile;
-	Map *config;
-} AppConfig;
-
-AppConfig *app_config;
 
 Intent *parse_args(int argc, char *argv[]);
 //Create and fill an intent from args specified by argc and argv
@@ -56,8 +50,5 @@ Intent *parse_args(int argc, char *argv[]);
 
 void display_help();
 //Print out the help message
-
-int Arg_get_int(char *name, int fallback);
-bool Arg_has(char *name);
 
 #endif

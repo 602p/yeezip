@@ -11,9 +11,9 @@ char *ext_get_name(){
 	return "static";
 }
 
-TreeNode *ext_build_tree(AppConfig *parent_config, int *freqtable){
-	app_config=parent_config;
-	char *treename=Map_GETDEFAULTSTR(app_config->config, "tree", "flat");
+TreeNode *ext_build_tree(int loglevel_in, Map *options, int *freqtable){
+	loglevel=loglevel_in;
+	char *treename=Map_GETDEFAULTSTR(options, "tree", "flat");
 	LOG_DEBUG("Returning tree: %s\n", treename);
 	
 

@@ -14,10 +14,6 @@
 #define LOG_REGION "main"
 
 int main(int argc, char *argv[]) {
-	app_config=MALLOC_NOLOG(sizeof(AppConfig));
-	setup_logging();
-	app_config->config=Map_create();
-
 	Intent *intent=parse_args(argc, argv);
 
 	if(intent->invalid){
@@ -50,7 +46,7 @@ int main(int argc, char *argv[]) {
 		freqtable *ftbl=FreqTable_create(file_in_ft);
 		fclose(file_in_ft);
 
-		if(Arg_has("print_freqtable")){
+		if(Map_has(intent->options, "print_freqtable")){
 			int fidx=0;
 			printf("[");
 			while(fidx<256){
@@ -72,7 +68,7 @@ int main(int argc, char *argv[]) {
 		LOG_DEBUG("Extention handle acquired\n");
 		LOG_STATUS("Calling extension %s...\n", extention_name);
 
-		tree=extension(app_config, ftbl);
+		tree=extension(loglevel, intent->options, ftbl);
 
 		if((void*)tree==0){
 			LOG_FAIL("Specified algorithm did not return a tree\n");
@@ -83,7 +79,7 @@ int main(int argc, char *argv[]) {
 
 		LookupTable *table=create_table(tree);
 
-		if(Arg_has("print_table")) LookupTable_print(table);
+		if(Map_has(intent->options, "print_table")) LookupTable_print(table);
 
 		if(intent->do_compress){
 			FILE *file_in=fopen(intent->infile, "r");
@@ -157,7 +153,7 @@ int main(int argc, char *argv[]) {
 
 		FILE *file_out = fopen(intent->outfile, "w");
 
-		if(Arg_has("print_tree")) Tree_print(tree);
+		if(Map_has(intent->options, "print_tree")) Tree_print(tree);
 
 		decompress_file(file_in, file_out, tree, hdr->size);
 

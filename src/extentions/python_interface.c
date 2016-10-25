@@ -12,8 +12,8 @@ char *ext_get_name(){
 	return "pyiface";
 }
 
-TreeNode *ext_build_tree(AppConfig *parent_config, freqtable *ftable){
-	app_config=parent_config;
+TreeNode *ext_build_tree(int loglevel_in, Map *options, freqtable *ftable){
+	loglevel=loglevel_in;
 	LOG_STATUS("***Starting up the python interpreter***\n");
 
 	Py_Initialize();
@@ -22,10 +22,10 @@ TreeNode *ext_build_tree(AppConfig *parent_config, freqtable *ftable){
 	PyObject *app_arguments = PyDict_New();
 	LOG_SPAM("Entering mapping loop\n");
 	MapElement *elem;
-	LOG_SPAM("(loglevel) Setting loglevel=%d\n", app_config->loglevel);
-	PyDict_SetItemString(app_arguments, "loglevel", PyLong_FromLong((long)app_config->loglevel));
-	if(app_config->config->head!=0){
-		elem=app_config->config->head;
+	LOG_SPAM("(loglevel) Setting loglevel=%d\n", loglevel);
+	PyDict_SetItemString(app_arguments, "loglevel", PyLong_FromLong((long)loglevel));
+	if(options->head!=0){
+		elem=options->head;
 		while(elem!=0){
 			LOG_SPAM("Looping...\n");
 			LOG_SPAM("Setting %s=%s\n", elem->key, (char*)elem->value);
@@ -60,7 +60,7 @@ TreeNode *ext_build_tree(AppConfig *parent_config, freqtable *ftable){
 	LOG_SPAM("Running bootstrap code\n");
 	PyRun_SimpleFile(fp_hdr, "./extentions/yeezip.py");
 	fclose(fp_hdr);
-	char *pyfn=Map_getstr(app_config->config, "pyalg");
+	char *pyfn=Map_getstr(options, "pyalg");
 	LOG_STATUS("Running python algorithm %s\n", pyfn);
 	FILE *fp=fopen(pyfn, "r");
 	if(fp==0){

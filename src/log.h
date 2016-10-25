@@ -16,18 +16,18 @@
 #define ERROR	7
 #define FAIL	8
 
-void setup_logging();
+extern int loglevel;
 
 //If compiled with -DLOG_LINENO include region and line number in all log messages
 #ifdef LOG_LINENO
-#define LOG(LEVEL, ALERT, ...) if(LEVEL>=app_config->loglevel){\
-	fprintf(app_config->logfile, LOG_REGION "@%i:    \t", __LINE__);\
-	fprintf(app_config->logfile, "[" ALERT #LEVEL ALERT "]  \t");\
-	fprintf(app_config->logfile, __VA_ARGS__);}
+#define LOG(LEVEL, ALERT, ...) if(LEVEL>=loglevel){\
+	printf(LOG_REGION "@%i:    \t", __LINE__);\
+	printf("[" ALERT #LEVEL ALERT "]  \t");\
+	printf(__VA_ARGS__);}
 #else
-#define LOG(LEVEL, ALERT, ...) if(LEVEL>=app_config->loglevel){\
-	fprintf(app_config->logfile, "[" ALERT #LEVEL ALERT "]  \t");\
-	fprintf(app_config->logfile, __VA_ARGS__);}
+#define LOG(LEVEL, ALERT, ...) if(LEVEL>=loglevel){\
+	printf("[" ALERT #LEVEL ALERT "]  \t");\
+	printf(__VA_ARGS__);}
 #endif
 
 //If compiled without the flag -DENABLE_SPAM just replace these macros away to nothing

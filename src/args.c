@@ -35,6 +35,7 @@ Intent *parse_args(int argc, char *argv[]){
 	intent->algorithm="";
 	intent->testname="";
 	intent->skip_save_tree=false;
+	intent->options=Map_create();
 
 	char *name_temp; //Will hold name of key=value args
 	int name_length; //Will hold length of ^
@@ -108,20 +109,20 @@ Intent *parse_args(int argc, char *argv[]){
 					break;
 
 				case 'v': //Verbose mode
-					app_config->loglevel-=strlen(argv[current_arg])-1; //Decrement by # of vs
-					LOG_SPAM("loglevel=%i\n", app_config->loglevel);
+					loglevel-=strlen(argv[current_arg])-1; //Decrement by # of vs
+					LOG_SPAM("loglevel=%i\n", loglevel);
 					break;
 
 				case 'q': //Quiet mode
 				          //(Suppresses only stuff generated thru normal logging facilities, won't
 				          // suppress stuff coming out thru printfs used for debugging
 				          // (e.g. when -Pprint_table is used to debug the table transformation))
-					app_config->loglevel=999;
+					loglevel=999;
 					break;
 
 				case 'f': //Set log level to the value (passed by -f<value>)
-					app_config->loglevel=atoi(argv[current_arg]+2); //Skip first two bytes, as they are -f
-					LOG_SPAM("loglevel=%i\n", app_config->loglevel);
+					loglevel=atoi(argv[current_arg]+2); //Skip first two bytes, as they are -f
+					LOG_SPAM("loglevel=%i\n", loglevel);
 					break;
 
 				case 's': //Save tree to file passed next
@@ -179,7 +180,7 @@ Intent *parse_args(int argc, char *argv[]){
 					//Copy the name into the new buffer (incl trailing null), starting at +2 as
 					// first two bytes are -p
 
-					Map_setstr(app_config->config, name_temp, argv[current_arg]+2+name_length+1);
+					Map_setstr(intent->options, name_temp, argv[current_arg]+2+name_length+1);
 					//Do the actual argument set. Offset for the value is...
 					// argv[current_value]	:	Base position of the whole string
 					// +2 					:	Skip the -p at the start of the arg
@@ -187,14 +188,14 @@ Intent *parse_args(int argc, char *argv[]){
 					// +1					:	Skip the = sign
 					//NOTE: No type transformation is preformed, and all values are stored as strings
 					// (this means that setting `-pfoo=1`, and then doing 
-					//  Map_getint(app_config->config, 'foo') DOSENT EQUAL (int)1
+					//  Map_getint(intent->options, 'foo') DOSENT EQUAL (int)1
 					//  and is probably segfault-causing)
 
 					LOG_SPAM("Set parameter `%s` -> `%s`\n", name_temp, argv[current_arg]+2+name_length+1);
 					break;
 
 				case 'P': //Set a flag to the literal string '1' (for usage as flags)
-					Map_setstr(app_config->config, argv[current_arg]+2, "1");
+					Map_setstr(intent->options, argv[current_arg]+2, "1");
 					//Set the argument. Offset is +2 to skip the -P at the start of the arg
 
 					LOG_SPAM("Set parameter `%s` -> `1` (-P directive)\n", argv[current_arg]+2);
@@ -317,26 +318,6 @@ void display_help(Map *extensions){
 	printf(
 		"\n\n(>) Copyleft Louis Goessling 2016. Good luck!\n"
 	);
-}
-
-int Arg_get_int(char *name, int fallback){
-	if(Map_has(app_config->config, name)==false){
-		return fallback;
-	}
-	char *res = Map_getstr(app_config->config, name);
-	int val=atoi(res);
-	char buf[20];
-	sprintf(buf,"%d",val);
-	if(strcmp(res, buf)==0){
-		return val;
-	}else{
-		LOG_ERROR("Invalid option for parameter %s, must be int. Falling back to %i\n", name, fallback);
-		return fallback;
-	}
-}
-
-bool Arg_has(char *name){
-	return Map_has(app_config->config, name);
 }
 
 #undef LOG_REGION

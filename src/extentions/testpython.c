@@ -11,8 +11,8 @@ char *ext_get_name(){
 	return "pytest";
 }
 
-TreeNode *ext_build_tree(AppConfig *parent_config, int *freqtable){
-	app_config=parent_config;
+TreeNode *ext_build_tree(int loglevel_in, Map *options, int *freqtable){
+	loglevel=loglevel_in;
 	LOG_INFO("***Trying python!***\n");
 
 	Py_Initialize();

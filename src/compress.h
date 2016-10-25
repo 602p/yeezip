@@ -47,6 +47,8 @@ typedef LookupTableElement LookupTable[256];
 
 LookupTable *create_table(TreeNode *root);
 //Create and populate a new lookuptable from the tree where <root> is the root node
+LookupTable *create_table_d(TreeNode *root, int depth);
+//Same as above, but specify the <depth> of the search stack construct
 void free_table(LookupTable *table);
 //Free the lookuptable and the associated linked data
 
