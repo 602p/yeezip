@@ -7,6 +7,7 @@
 #include "io.h"
 
 #define LOG_REGION "pyiface"
+#define DEFAULT_ALG "extentions/genetic.py"
 
 char *ext_get_name(){
 	return "pyiface";
@@ -60,7 +61,7 @@ TreeNode *ext_build_tree(int loglevel_in, Map *options, freqtable *ftable){
 	LOG_SPAM("Running bootstrap code\n");
 	PyRun_SimpleFile(fp_hdr, "./extentions/yeezip.py");
 	fclose(fp_hdr);
-	char *pyfn=Map_getstr(options, "pyalg");
+	char *pyfn=Map_GETDEFAULTSTR(options, "pyalg", DEFAULT_ALG);
 	LOG_STATUS("Running python algorithm %s\n", pyfn);
 	FILE *fp=fopen(pyfn, "r");
 	if(fp==0){

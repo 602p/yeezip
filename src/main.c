@@ -36,11 +36,6 @@ int main(int argc, char *argv[]) {
 	TreeNode *tree;
 
 	if(intent->intent==INTENT_COMPRESS){
-		if(strlen(intent->algorithm)==0){
-			LOG_ERROR("No algorithm specified\n");
-			exit(1);
-		}
-
 		LOG_STATUS("Building Freqtable\n");
 		FILE *file_in_ft=fopen(intent->infile, "r");
 		freqtable *ftbl=FreqTable_create(file_in_ft);
@@ -58,21 +53,54 @@ int main(int argc, char *argv[]) {
 
 		char *extention_name=intent->algorithm;
 
-		if(!Map_has(treebuilder_extensions, extention_name)){
-			LOG_ERROR("Extention %s not found\n", extention_name);
-			exit(1);
-		}
+		if(strlen(extention_name)!=0){
+			if(!Map_has(treebuilder_extensions, extention_name)){
+				LOG_ERROR("Extention %s not found\n", extention_name);
+				exit(1);
+			}
 
-		treebuilder_sig *extension = Map_GETFUNC(treebuilder_extensions, extention_name, treebuilder_sig);
+			treebuilder_sig *extension = Map_GETFUNC(treebuilder_extensions, extention_name, treebuilder_sig);
 
-		LOG_DEBUG("Extention handle acquired\n");
-		LOG_STATUS("Calling extension %s...\n", extention_name);
+			LOG_DEBUG("Extention handle acquired\n");
+			LOG_STATUS("Calling extension %s...\n", extention_name);
 
-		tree=extension(loglevel, intent->options, ftbl);
+			tree=extension(loglevel, intent->options, ftbl);
 
-		if((void*)tree==0){
-			LOG_FAIL("Specified algorithm did not return a tree\n");
-			exit(1);
+			if((void*)tree==0){
+				LOG_FAIL("Specified algorithm did not return a tree\n");
+				exit(1);
+			}
+		}else{
+			LOG_STATUS("Trying all algorithm to choose optimal...\n");
+			if(treebuilder_extensions->head){
+				int bestsize=-1;
+				TreeNode *besttree;
+				MapElement *ele=treebuilder_extensions->head;
+				int csize;
+				while(ele){
+					LOG_STATUS("Trying `%s`...\n", ele->key);
+					TreeNode *candidate=
+					 Map_GETFUNC(treebuilder_extensions, ele->key, treebuilder_sig)(loglevel, intent->options, ftbl);
+					LookupTable *lut=create_table(candidate);
+					csize=get_compressed_size(lut, ftbl)+Tree_savetobuf_size(TreeNode_count(candidate));
+					LOG_DEBUG("csize=%i\n", csize);
+					if(csize<bestsize || bestsize==-1){
+						LOG_DEBUG("Better than previous best %i<%i\n", csize, bestsize);
+						bestsize=csize;
+						besttree=candidate;
+					}else{
+						free(candidate);
+					}
+					free(lut);
+					ele=ele->next;
+				}
+
+				tree=besttree;
+
+			}else{
+				LOG_FAIL("No algorithms!\n");
+				exit(1);
+			}
 		}
 
 		LOG_STATUS("Building LookupTable\n");

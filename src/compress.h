@@ -102,4 +102,7 @@ HeaderInfo *HeaderInfo_load_fd(FILE *fd);
 HeaderInfo *HeaderInfo_load_file(char *path);
 //Load a complete header (including tree) from the file at the path path then close it
 
+int get_compressed_size(LookupTable *ltbl, freqtable *ftbl);
+//Get the size (in bits) to compress the file represented by ftbl using the tree represented by ltbl
+
 #endif

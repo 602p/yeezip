@@ -300,7 +300,7 @@ void display_help(Map *extensions){
 		"  -h              : Show this fustercluck\n"
 		"\n"
 		"Commands:\n"
-		"Compress: -c INFILE (-a<algorithm>|-l IMPORTFILE) [-s SAVEFILE] [-O] (-d|-o OUTFILE)\n"
+		"Compress: -c INFILE [-a<algorithm>|-l IMPORTFILE] [-s SAVEFILE] [-O] (-d|-o OUTFILE)\n"
 		"  -c INFILE       : Read from INFILE and do compression on this\n"
 		"  -a<algorithm>   : Use <algorithm> (loaded from extensions) to generate a tree. If unspecified, use some number and choose best\n"
 		"  -l IMPORTFILE   : Read in tree from IMPORTFILE\n"
@@ -318,9 +318,9 @@ void display_help(Map *extensions){
 	);
 	if(extensions->head!=0){
 		MapElement *ele=extensions->head;
-		while(ele->next!=0){
+		while(ele){
 			printf(ele->key);
-			if(ele->next->next!=0){
+			if(ele->next!=0){
 				printf(", ");
 			}
 			ele=ele->next;

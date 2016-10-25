@@ -6,6 +6,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include "codingtree.h"
+#include "io.h"
 
 #define LOG_REGION "cmprs"
 
@@ -113,6 +114,24 @@ LookupTable *create_table_d(TreeNode *root, int depth){
 	return table;
 }
 
+int get_compressed_size(LookupTable *ltbl, freqtable *ftbl){
+	int sz=0;
+	int idx=0;
+	int sumsz;
+	int sizes_idx;
+	while (idx<256){
+		sumsz=0;
+		sizes_idx=0;
+		while(sizes_idx<(*ltbl)[idx].len){
+			sumsz+=(*ltbl)[idx].widths[sizes_idx];
+			sizes_idx+=1;
+		}
+		sz+=(*ftbl)[idx] * sumsz;
+		idx+=1;
+	}
+	return sz;
+}
+
 void free_table(LookupTable *table){
 	int i = 0;
 	while(i<256){
@@ -133,7 +152,7 @@ void compress_file(FILE *in, BitFile *out, LookupTable *table, int size){
 	while(position<size){
 		currbyte=fgetc(in);
 		if((*table)[currbyte].len==0){
-			LOG_WARN("Char %c was found in file but not in LookupTable, ignoring\n", currbyte);
+			// LOG_WARN("Char %c was found in file but not in LookupTable, ignoring\n", currbyte);
 		}else{
 			write_pos=0;
 			while(write_pos<(*table)[currbyte].len){
