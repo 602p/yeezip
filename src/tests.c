@@ -91,17 +91,16 @@ Test(tree, tree_create_destroy){
 	TreeNode_destroy(tree);
 }
 
-//Creates a simple tree for testing with
-//Looks like this:
-//              *
-//             / \
-//            a   *
-//              // \\
-//             bc  d*
-//                 / \
-//                e   f
-
 TreeNode* create_demotree(){
+	//Creates a simple tree for testing with
+	//Looks like this:
+	//              *
+	//             / \
+	//            a   *
+	//              // \\
+	//             bc  d*
+	//                 / \
+	//                e   f
 	TreeNode* root=TreeNode_create(2);
 	TreeNode* l1=TreeNode_create(4);
 	TreeNode* l2=TreeNode_create(2);

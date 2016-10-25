@@ -1,4 +1,4 @@
-import subprocess, sys
+import subprocess, sys, os
 
 class SubprocessReturnValue:
 	def __init__(self, code, value):
@@ -27,8 +27,7 @@ def test(val, msg):
 if "nointeg" not in sys.argv:
 	bueno=True
 
-	print("Building...")
-	call("python", "-m", "build", "espam", "lln", "rbx")
+	os.system("python3 -m build espam lln rbx nr")
 
 	print("Running Integration tests... ")
 
@@ -66,10 +65,7 @@ if "nointeg" not in sys.argv:
 	if bueno:
 		print("\033[92m\t\t\t\t\tALL GOOD!\033[0m")
 
-	if not bueno:
-		sys.exit(1)
-
 if "nounit" not in sys.argv:
 	print("Running unittests...")
 
-	print(call("python", "-m", "build", "tests").value)
+	os.system("python3 -m build tests")

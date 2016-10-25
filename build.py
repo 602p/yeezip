@@ -66,15 +66,18 @@ if "tests" in sys.argv:
 
 
 if "rbx" in sys.argv:
-	os.system("rm extentions/*")
-	for extention in [x for x in extentions if x.endswith(".c")]:
+	os.system("rm extentions/* 2>/dev/null")
+	idx=0
+	cextensions=[x for x in extentions if x.endswith(".c")]
+	for extention in cextensions:
+		idx+=1
 		fullname=extention_dir+"/"+extention
 		barename=extention[:-2]
 		soname="extentions/"+barename+".so"
 		cmdline=basecmd+" "+fullname+" -shared -o "+soname
 		if barename in python_extensions:
 			cmdline+=" -lpython3.4m"
-		# print("Building extention %s: %s"%(barename, cmdline))
+		print("\rBuilding extention %i/%i: %s           "%(idx, len(cextensions), barename), end="")
 
 		os.system(cmdline)
 	os.system("cp src/extentions/*.py extentions")
@@ -82,7 +85,7 @@ if "rbx" in sys.argv:
 cmdline=basecmd+" -o "+output
 
 if "dbm" not in sys.argv:
-	# print("Executing:"+cmdline)
+	print("\rBuilding Main Application...                                     ")
 
 	os.system(cmdline)
 
