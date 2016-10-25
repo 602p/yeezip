@@ -2,7 +2,7 @@
 
 ##Requirements
  * Nada nada, enchilada!
- * That is, a C compiler (GCC or clang) and libc
+ * That is, a C compiler (GCC) and libc (Youre welcome to try clang, it works, but that's not what build.py is set up to use)
  * Also linux. Probably. It compiles under cyguin by sure dosen't work
  * (Optional) If you want to run unittests you'll need to install Criterion on the path somewhere.
  * (Optional) Python 3.4 (headers + lib) somewhere on your path for pyiface
