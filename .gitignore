@@ -39,5 +39,5 @@ samples/*
 *.yz
 *.yt
 out.txt
-extensions/*.py
+extentions/*.py
 
