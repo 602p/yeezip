@@ -37,8 +37,8 @@ extern int loglevel;
 #define LOG_ALLOC(...) LOG(ALLOC, "", __VA_ARGS__)
 #define LOG_SPAM(...) LOG(SPAM, "", __VA_ARGS__)
 #else
-#define LOG_ALLOC
-#define LOG_SPAM
+#define LOG_ALLOC(...) //
+#define LOG_SPAM(...) //
 #endif
 
 #define LOG_DEBUG(...) LOG(DEBUG, "", __VA_ARGS__)
