@@ -152,7 +152,7 @@ void compress_file(FILE *in, BitFile *out, LookupTable *table, int size){
 	while(position<size){
 		currbyte=fgetc(in);
 		if((*table)[currbyte].len==0){
-			// LOG_WARN("Char %c was found in file but not in LookupTable, ignoring\n", currbyte);
+			LOG_WARN("Char %c was found in file but not in LookupTable, ignoring\n", currbyte);
 		}else{
 			write_pos=0;
 			while(write_pos<(*table)[currbyte].len){
