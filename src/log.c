@@ -4,7 +4,7 @@
 
 #define LOG_REGION "log"
 
-int loglevel=STATUS;
+int loglevel=INFO;
 
 void *malloc_hook(size_t size, char *file, int line){
 	if(loglevel<=1){

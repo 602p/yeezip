@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 				exit(1);
 			}
 		}else{
-			LOG_STATUS("Trying all algorithm to choose optimal...\n");
+			LOG_INFO("Trying all algorithm to choose optimal...\n");
 			if(treebuilder_extensions->head){
 				int bestsize=-1;
 				TreeNode *besttree;
