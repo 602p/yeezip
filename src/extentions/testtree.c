@@ -13,19 +13,11 @@ char *ext_get_name(){
 
 TreeNode *ext_build_tree(int loglevel_in, Map *options, int *freqtable){
 	loglevel=loglevel_in;
-	char *treename=Map_GETDEFAULTSTR(options, "tree", "flat");
+	char *treename=Map_GETDEFAULTSTR(options, "tree", "hex");
 	LOG_DEBUG("Returning tree: %s\n", treename);
 	
 
-	if(strcmp(treename, "flat")==0){
-		TreeNode *tree=TreeNode_create(256);
-		int i=0;
-		while(i<256){
-			TreeNode_attach(tree, TreeNode_create_leaf(i), i);
-			i++;
-		}
-		return tree;
-	}else if(strcmp(treename, "hex")==0){
+	if(strcmp(treename, "hex")==0){
 		TreeNode *tree=TreeNode_create(16);
 		TreeNode_attach(tree, TreeNode_create_leaf('0'), 0);
 		TreeNode_attach(tree, TreeNode_create_leaf('1'), 1);

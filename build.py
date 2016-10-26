@@ -44,6 +44,9 @@ python_extensions=["testpython","python_interface"] #extension names (stripped o
 ###########################################################################################
 #Horrible crap below
 
+if "d" in sys.argv:
+	sys.argv.extend(["rbx","espam"])
+
 files_as_string = " ".join(files)
 
 defines_as_string=""

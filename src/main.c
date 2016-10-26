@@ -73,7 +73,12 @@ int main(int argc, char *argv[]) {
 		}else{
 			LOG_INFO("Trying all algorithm to choose optimal...\n");
 			if(treebuilder_extensions->head){
-				int bestsize=-1;
+
+				struct stat opt_st;
+				stat(intent->infile, &opt_st);
+
+				int bestsize=opt_st.st_size*8;
+				
 				TreeNode *besttree;
 				MapElement *ele=treebuilder_extensions->head;
 				int csize;
@@ -93,6 +98,11 @@ int main(int argc, char *argv[]) {
 					}
 					free(lut);
 					ele=ele->next;
+				}
+
+				if(bestsize==opt_st.st_size*8){
+					LOG_FAIL("No actually functional tree found, bailing out.\n")
+					exit(1);
 				}
 
 				tree=besttree;

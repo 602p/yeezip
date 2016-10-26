@@ -72,6 +72,11 @@ int Tree_savetobuf_size(int nodes){
 void TreeNode_write(TreeNode *node, char *buffer, int *buf_pos){
 	LOG_SPAM("Writing node where value=%c children=%i buf_pos=%i memaddr=%i\n", node->value, node->children, *buf_pos, buffer+(*buf_pos));
 	
+	if(node->children>255){
+		LOG_FAIL("Trying to save a tree with a node that has >255 children.\n")
+		exit(1);
+	}
+
 	memcpy(buffer+(*buf_pos), &(node->value), sizeof(byte));
 	(*buf_pos)+=sizeof(byte);
 	//Write the value and move forward one byte
